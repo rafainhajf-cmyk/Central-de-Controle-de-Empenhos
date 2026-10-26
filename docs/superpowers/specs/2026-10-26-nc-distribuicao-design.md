@@ -31,7 +31,7 @@ A gravação ficará restrita às células necessárias em NCs e prazos, Distrib
 
 ## Identidade e conciliação dos registros antigos
 
-NCs serão identificadas por UG + exercício + número completo da NC. Distribuições terão um ID de controle próprio e vínculo com essa chave da NC. O exercício deve coincidir com o prefixo do número. As UGs disponíveis inicialmente serão 160111 e 167111.
+NCs serão identificadas por UG + exercício + número completo da NC. Distribuições terão um ID de controle próprio e vínculo com essa chave da NC. O exercício deve coincidir com o prefixo do número. As UGs disponíveis inicialmente serão 160111 e 167111. Como as fórmulas existentes cruzam distribuições somente pelo número da NC, esta etapa recusará o cadastro de um número de NC que já exista em qualquer UG. Habilitar o mesmo número em UGs distintas exigirá uma revisão explícita dessas fórmulas.
 
 Não será atribuída UG automaticamente aos registros antigos. O formulário permitirá confirmar a UG de uma linha existente mediante conferência e justificativa. A associação preenche somente os campos de controle e registra antes/depois no histórico; os valores financeiros existentes permanecem iguais.
 
