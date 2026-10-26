@@ -1,0 +1,8 @@
+const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');const handler=require('../api/central');const {privateKey}=crypto.generateKeyPairSync('rsa',{modulusLength:2048});
+process.env.APP_ACCESS_TOKEN='test-only-access-token-000000000';process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL='test@example.invalid';process.env.GOOGLE_PRIVATE_KEY=privateKey.export({type:'pkcs8',format:'pem'});
+async function request(tab,page){const original=global.fetch,calls=[];global.fetch=async(url)=>{calls.push(url);return{ok:true,json:async()=>url.includes('oauth2')?{access_token:'fake'}:url.includes('?fields=')?{sheets:[{properties:{title:tab,gridProperties:{rowCount:300}}}]}:{valueRanges:[{values:[['ID']]},{values:[['row']]}]}}};const res={setHeader(){},status(n){this.code=n;return this},json(d){this.data=d;return this}};try{await handler({method:'GET',headers:{authorization:'Bearer '+process.env.APP_ACCESS_TOKEN},query:{tab,page}},res);return{res,calls}}finally{global.fetch=original}}
+test('detailed distribution is available through authenticated API',async()=>{const{res}=await request('Distribuições detalhadas',0);assert.equal(res.code,200)});
+test('APRV reads all 32 columns instead of truncating at U',async()=>{const{res,calls}=await request('APRV liquidar até fev 27',0);assert.equal(res.code,200);assert.match(decodeURIComponent(calls.at(-1)),/AF/)});
+test('invalid pages never silently repeat a page',async()=>{const{res,calls}=await request('NCs e prazos','garbage');assert.equal(res.code,400);assert.equal(calls.length,0)});
+
+test('short page with trailing blank cells still advances across grid gaps',async()=>{const{res}=await request('NCs e prazos',0);assert.equal(res.data.hasMore,true)});
