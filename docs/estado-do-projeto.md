@@ -24,7 +24,7 @@ Em 26/10/2026, a versão candidata protegida leu NCs, Almox e APRV (32 colunas) 
 
 A primeira sincronização completa pela interface falhou depois de uma sequência de dezenas de chamadas ao Google. Isso motivou a consulta consolidada: uma leitura de metadados e uma leitura em lote para as 31 abas, com aplicação atômica no navegador e recusa explícita de dados incompletos ou acima dos limites seguros. A revisão consolidada passou no navegador contra os dados reais: 31/31 abas carregadas em uma chamada à API, HTTP 200, sem erros ou alertas. A suíte local passou com 22 testes e a revisão de código não apontou impedimentos para esta etapa.
 
-O teste usa um token temporário em uma ramificação protegida, com expiração automática. A chave de produção permanece inalterada. As configurações Google foram recolocadas no ambiente de produção depois que a candidata capturou suas variáveis. As autorizações temporárias de automação e compartilhamento foram revogadas após os testes; o token temporário foi retirado da configuração da ramificação. Nenhuma chave deve ser enviada pelo chat ou adicionada ao código.
+O teste usa um token temporário em uma ramificação protegida, com expiração automática. A chave de produção permanece inalterada. As configurações Google foram recolocadas no ambiente de produção depois que a candidata capturou suas variáveis. As autorizações temporárias de automação e compartilhamento foram revogadas após os testes; o token temporário foi invalidado na configuração da ramificação. Nenhuma chave deve ser enviada pelo chat ou adicionada ao código.
 
 ## Etapas operacionais ainda pendentes
 
