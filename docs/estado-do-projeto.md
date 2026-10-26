@@ -9,18 +9,22 @@ A versão original oferecia 11 seções e autorizava 12 abas na API. Dados carre
 ## Etapa 1 — implementação local
 
 - Consulta autenticada às 31 abas com links para os identificadores corretos e largura de colunas própria, incluindo as 32 colunas de APRV.
-- Paginação pelos limites atuais da planilha, sem interromper em lacunas. Cada aba só substitui seu retrato anterior depois de uma leitura completa.
+- Paginação pelos limites atuais da planilha, sem interromper em lacunas. A interface consulta as 31 abas em lote e só substitui o retrato depois de validar o conjunto inteiro, evitando a sequência de chamadas que falhou na primeira prova real.
 - CSV importado separado da consulta ao Drive.
 - Cópia local opcional criptografada, incluindo rascunhos; recuperação preserva os campos digitados na página atual.
 - API de acompanhamento acrescenta linhas com RAW, confere cabeçalhos, rejeita JSON inválido e campos excessivos e preserva o texto integral aceito.
 - Teste autenticado em aba temporária, com dois acréscimos, leitura de conferência e remoção da aba criada.
 - Testes de comportamento das APIs, paginação, criptografia e recuperação no navegador.
 
-## Validação real pendente
+## Validação real
 
 A API de produção existente rejeitou consulta sem chave com HTTP 401. A existência da aba e dos cabeçalhos foi confirmada pelo conector Google Drive. Isso não comprova a gravação pela conta de serviço usada pela API.
 
-As credenciais Vercel estão marcadas como sensíveis; não estão disponíveis para leitura pelo conector. Para a validação real, a implantação candidata deve usar as variáveis do ambiente e o usuário deve autenticar-se no painel. Não enviar chaves pelo chat. Somente declarar a permissão de Editor verificada após o teste real retornar sucesso e limpeza confirmada.
+Em 26/10/2026, a versão candidata protegida leu NCs, Almox e APRV (32 colunas) pela própria conta de serviço. O teste real retornou HTTP 200, `verified: true`, `cleanedUp: true` e `officialDataChanged: false`. A conferência posterior pelo conector confirmou as 31 abas, ausência de aba temporária e histórico de lançamentos inalterado.
+
+A primeira sincronização completa pela interface falhou depois de uma sequência de dezenas de chamadas ao Google. Isso motivou a consulta consolidada: uma leitura de metadados e uma leitura em lote para as 31 abas, com aplicação atômica no navegador e recusa explícita de dados incompletos ou acima dos limites seguros. A prova real dessa revisão é necessária antes de publicar.
+
+O teste usa um token temporário em uma ramificação protegida, com expiração automática. A chave de produção permanece inalterada. As configurações Google foram recolocadas no ambiente de produção depois que a candidata capturou suas variáveis. Autorizações temporárias de acesso à implantação devem ser revogadas ao final da validação. Nenhuma chave deve ser enviada pelo chat ou adicionada ao código.
 
 ## Etapas operacionais ainda pendentes
 

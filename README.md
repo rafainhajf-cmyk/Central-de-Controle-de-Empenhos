@@ -6,7 +6,7 @@ Aplicativo de consulta autenticada ao Google Sheets, com registro de acompanhame
 
 1. Clique em **Sincronizar Drive** e informe a chave do painel. Ela permanece na memória da página; não é incluída no código público ou na cópia local.
 2. As 31 seções permitem consultar as abas, incluindo distribuição detalhada, metas, liquidação semanal, observação integral do Almox e auditoria. Consultar uma aba não significa que seus formulários operacionais já foram implementados no aplicativo.
-3. A sincronização troca os dados de cada aba somente após concluir todas as suas páginas. Em caso de falha, mantém a última consulta completa e informa o erro. Trechos vazios não encerram a paginação.
+3. A sincronização consulta as 31 abas em lote e só aplica o conjunto após validar a resposta completa. Em caso de falha, mantém a última consulta completa e informa o erro. Trechos vazios não encerram a consulta. A API de consulta individual mantém paginação pelos limites atuais da aba.
 4. CSVs importados ficam separados dos dados consultados no Drive.
 5. A cópia local é opcional e criptografada com AES-GCM e chave derivada por PBKDF2. Ela inclui dados consultados e rascunhos. Ative somente em computador autorizado; recupere usando a mesma chave do painel. A cópia não substitui o histórico no Drive. Use **Apagar cópia local** para removê-la.
 6. O acompanhamento manual acrescenta uma linha à aba **Lançamentos do aplicativo**; não altera NCs, NEs, contratos, processos ou fórmulas. Confira esse histórico antes de repetir um envio sem confirmação, pois o Google pode ter recebido a gravação mesmo que a resposta tenha sido perdida.
