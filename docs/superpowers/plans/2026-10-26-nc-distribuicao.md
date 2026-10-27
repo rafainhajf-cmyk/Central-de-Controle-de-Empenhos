@@ -1,6 +1,6 @@
 # NC e distribuição — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans para execução direta nesta sessão, ou superpowers:subagent-driven-development se esse método for escolhido pelo usuário. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans para execução direta nesta sessão, ou superpowers:subagent-driven-development se esse método for escolhido pelo usuário. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Permitir cadastro de NC, confirmação de UG, distribuição e encerramento nas abas oficiais, com preservação de fórmulas, auditoria e recuperação de resultado incerto.
 
@@ -70,11 +70,11 @@ Erros de validação retornam HTTP 400; conflito de versão/estrutura/vínculo/s
 - Produz `validateCommand(input): Command`, `recordVersion(cells): string`, `ncKey(ug,year,nc): string` em `lib/operational-model.js`.
 - Produz `readOperationalState(context): Promise<State>` e `toReadModel(state): ReadModel` em `lib/operational-store.js`. Contexto de produção usa os IDs reais já examinados; contexto alternativo só poderá ser criado internamente pela prova isolada.
 
-- [ ] **Step 1 — escrever testes que falham.** Validar UUID, UG, exercício/prefixo, ND de seis dígitos, datas bissextas e valores em centavos seguros; rejeitar decimal JSON, valor negativo e soma recebido diferente de empenhado + disponível. Ler uma distribuição sem data e comprovar sua presença. Sinalizar referência ausente, UG pendente, referência duplicada e número repetido em outra UG. Preservar linhas preenchidas após lacunas e detectar fórmula/célula de controle ocupada.
-- [ ] **Step 2 — executar `node --test tests/operational-model.test.js tests/operational-store.test.js`.** Confirmar falha por contratos ausentes ou comportamento ainda não implementado.
-- [ ] **Step 3 — implementar os contratos acima.** Ler CellData das duas abas operacionais até a linha 100, o cabeçalho/linhas existentes de Histórico por limites atuais e o retrato financeiro do painel. Recusar leitura incompleta e histórico acima de 10.000 linhas, sem truncar. Usar `userEnteredValue` para detectar fórmulas e versões. Aceitar K:L vazias ou exatamente UG/ID de controle; outro conteúdo impede preparação.
-- [ ] **Step 4 — executar a suíte inteira com `node --test tests/*.test.js`.** Todos os testes existentes e novos devem passar; não alterar os contratos dos endpoints publicados apenas para compartilhar código.
-- [ ] **Step 5 — registrar a tarefa em commit na ramificação `feature/nc-distribuicao`.**
+- [x] **Step 1 — escrever testes que falham.** Validar UUID, UG, exercício/prefixo, ND de seis dígitos, datas bissextas e valores em centavos seguros; rejeitar decimal JSON, valor negativo e soma recebido diferente de empenhado + disponível. Ler uma distribuição sem data e comprovar sua presença. Sinalizar referência ausente, UG pendente, referência duplicada e número repetido em outra UG. Preservar linhas preenchidas após lacunas e detectar fórmula/célula de controle ocupada.
+- [x] **Step 2 — executar `node --test tests/operational-model.test.js tests/operational-store.test.js`.** Confirmar falha por contratos ausentes ou comportamento ainda não implementado.
+- [x] **Step 3 — implementar os contratos acima.** Ler CellData das duas abas operacionais até a linha 100, o cabeçalho/linhas existentes de Histórico por limites atuais e o retrato financeiro do painel. Recusar leitura incompleta e histórico acima de 10.000 linhas, sem truncar. Usar `userEnteredValue` para detectar fórmulas e versões. Aceitar K:L vazias ou exatamente UG/ID de controle; outro conteúdo impede preparação.
+- [x] **Step 4 — executar a suíte inteira com `node --test tests/*.test.js`.** Todos os testes existentes e novos devem passar; não alterar os contratos dos endpoints publicados apenas para compartilhar código.
+- [x] **Step 5 — registrar a tarefa em commit na ramificação `feature/nc-distribuicao`.**
 
 ### Task 2: Comandos de NC e histórico atômico
 
@@ -85,11 +85,11 @@ Erros de validação retornam HTTP 400; conflito de versão/estrutura/vínculo/s
 - Produz `executeOperation(context, command): Promise<OperationResult>` e `findOperation(context, operationId): Promise<OperationResult | null>`.
 - HTTP GET sem ID retorna `ReadModel`; GET `operationId` consulta confirmação; POST recebe um `Command`. Seletores de planilha/aba/contexto fornecidos pelo cliente serão recusados.
 
-- [ ] **Step 1 — escrever testes que falham.** Cadastrar uma NC em A:L e acrescentar uma linha de Histórico na mesma chamada batchUpdate. Confirmar que E:G contêm números corretos, I não inventa informação de idade da fonte e J identifica cadastro manual a conferir. Associar UG de legado mudando só K:L. Alterar acompanhamento de NC existente mudando só H/J. Rejeitar duplicidade global de número, versão divergente, fórmula-alvo, cabeçalho divergente e próxima linha depois de 100. Testar repetição sequencial do mesmo UUID, mudança do conteúdo usando um UUID já confirmado e falha após o envio.
-- [ ] **Step 2 — executar `node --test tests/operational-store.test.js tests/operacoes.test.js` e confirmar as falhas esperadas.**
-- [ ] **Step 3 — implementar os comandos e o endpoint.** Preparar K:L quando ainda estiverem vazias, na mesma requisição da operação real; nunca por uma consulta GET. Calcular a próxima linha após a última linha com dados em A:L. Gravar texto com `stringValue` e dinheiro com `numberValue`; não aceitar fórmulas do cliente.
-- [ ] **Step 4 — implementar auditoria e confirmação.** Histórico A:I recebe data UTC, operação, chave, setor, responsável declarado, antes JSON, depois JSON, documento e metadados de controle contendo versão, UUID e hash do comando. Detectar o UUID antes de escrever; conteúdo diferente com o mesmo UUID gera conflito. Fazer uma única escrita do registro e auditoria e reler o resultado. Se a resposta da escrita for perdida, retornar resultado incerto, sem reenviar nem executar desfazimento automático.
-- [ ] **Step 5 — executar toda a suíte e registrar commit.** Provar também que 401/expiração não fazem chamadas ao Google e que `api/lancamentos.js` mantém seu comportamento append-only.
+- [x] **Step 1 — escrever testes que falham.** Cadastrar uma NC em A:L e acrescentar uma linha de Histórico na mesma chamada batchUpdate. Confirmar que E:G contêm números corretos, I não inventa informação de idade da fonte e J identifica cadastro manual a conferir. Associar UG de legado mudando só K:L. Alterar acompanhamento de NC existente mudando só H/J. Rejeitar duplicidade global de número, versão divergente, fórmula-alvo, cabeçalho divergente e próxima linha depois de 100. Testar repetição sequencial do mesmo UUID, mudança do conteúdo usando um UUID já confirmado e falha após o envio.
+- [x] **Step 2 — executar `node --test tests/operational-store.test.js tests/operacoes.test.js` e confirmar as falhas esperadas.**
+- [x] **Step 3 — implementar os comandos e o endpoint.** Preparar K:L quando ainda estiverem vazias, na mesma requisição da operação real; nunca por uma consulta GET. Calcular a próxima linha após a última linha com dados em A:L. Gravar texto com `stringValue` e dinheiro com `numberValue`; não aceitar fórmulas do cliente.
+- [x] **Step 4 — implementar auditoria e confirmação.** Histórico A:I recebe data UTC, operação, chave, setor, responsável declarado, antes JSON, depois JSON, documento e metadados de controle contendo versão, UUID e hash do comando. Detectar o UUID antes de escrever; conteúdo diferente com o mesmo UUID gera conflito. Fazer uma única escrita do registro e auditoria e reler o resultado. Se a resposta da escrita for perdida, retornar resultado incerto, sem reenviar nem executar desfazimento automático.
+- [x] **Step 5 — executar toda a suíte e registrar commit.** Provar também que 401/expiração não fazem chamadas ao Google e que `api/lancamentos.js` mantém seu comportamento append-only.
 
 ### Task 3: Reserva, cancelamento e conclusão de distribuição
 
@@ -100,11 +100,11 @@ Erros de validação retornam HTTP 400; conflito de versão/estrutura/vínculo/s
 - Acrescenta as ações `create-distribution` e `close-distribution` a `executeOperation`.
 - Produz `distributionBalance(state, ncRef): {availableCents,reservedCents,freeCents,issues}`.
 
-- [ ] **Step 1 — escrever testes que falham.** Disponível 10.000 centavos e reserva ativa 7.000 permitem nova distribuição de 3.000 e recusam 3.001. Cancelada/Concluída não reservam. Legado sem data continua contando; UG pendente, UG incompatível, saldo inválido e NC ausente bloqueiam nova reserva. Valor positivo, documentos e responsáveis são obrigatórios. Saldo vindo do cliente não muda o resultado. Referências por NE ficam fora da criação desta etapa.
-- [ ] **Step 2 — testar cancelamento/conclusão antes da implementação.** Alterar somente G e acompanhamento J, com justificativa e auditoria; preservar responsável, valor e finalidade originais. Exigir versão atual e vínculo da distribuição confirmado. Recusar reabertura/novo encerramento de registro terminal. Cancelamento com NC ausente pode ser registrado se a distribuição tiver UG confirmada, sem criar NC ou inventar saldo.
-- [ ] **Step 3 — executar os testes e confirmar as falhas.**
-- [ ] **Step 4 — implementar os comandos.** Recalcular no servidor com o estado recém-lido e os mesmos critérios das fórmulas. H:I recebem os valores de referência da NC ao criar. A auditoria usa o mesmo protocolo da tarefa 2. Reler o estado após a escrita; se houver alteração externa ou divergência de saldo, retornar `confirmed-with-conflict`, sem apagar operação ou histórico.
-- [ ] **Step 5 — executar a suíte completa e registrar commit.**
+- [x] **Step 1 — escrever testes que falham.** Disponível 10.000 centavos e reserva ativa 7.000 permitem nova distribuição de 3.000 e recusam 3.001. Cancelada/Concluída não reservam. Legado sem data continua contando; UG pendente, UG incompatível, saldo inválido e NC ausente bloqueiam nova reserva. Valor positivo, documentos e responsáveis são obrigatórios. Saldo vindo do cliente não muda o resultado. Referências por NE ficam fora da criação desta etapa.
+- [x] **Step 2 — testar cancelamento/conclusão antes da implementação.** Alterar somente G e acompanhamento J, com justificativa e auditoria; preservar responsável, valor e finalidade originais. Exigir versão atual e vínculo da distribuição confirmado. Recusar reabertura/novo encerramento de registro terminal. Cancelamento com NC ausente pode ser registrado se a distribuição tiver UG confirmada, sem criar NC ou inventar saldo.
+- [x] **Step 3 — executar os testes e confirmar as falhas.**
+- [x] **Step 4 — implementar os comandos.** Recalcular no servidor com o estado recém-lido e os mesmos critérios das fórmulas. H:I recebem os valores de referência da NC ao criar. A auditoria usa o mesmo protocolo da tarefa 2. Reler o estado após a escrita; se houver alteração externa ou divergência de saldo, retornar `confirmed-with-conflict`, sem apagar operação ou histórico.
+- [x] **Step 5 — executar a suíte completa e registrar commit.**
 
 ### Task 4: Interface, rascunho e recuperação de envio
 
@@ -115,11 +115,11 @@ Erros de validação retornam HTTP 400; conflito de versão/estrutura/vínculo/s
 - Produz `OperationalUI.mount({root,getToken,onRefresh,onDraftChange}): controller`; o controller oferece `show(moduleId)`, `serializeDraft()` e `restoreDraft(value)`.
 - `index.html` monta o módulo nas seções de NC/distribuição e inclui `operationalDraft` no objeto já criptografado. A restauração respeita os campos editados e o cancelamento de cópia local da etapa 1.
 
-- [ ] **Step 1 — escrever teste de navegador que falha com respostas HTTP controladas.** Exibir lista de NCs/UG pendente, confirmar associação com justificativa, criar NC, reservar crédito, cancelar/concluir e consultar resumo do histórico. Exibir data da fonte separada da consulta. Não exigir UUID ou versão ao usuário. Mostrar confirmação antes de gravar e bloquear duplo clique.
-- [ ] **Step 2 — acrescentar testes de falha.** Simular erro antes da escrita e resposta perdida após gravação, preservar o formulário e operationId, consultar confirmação sem novo POST automático. Recarregar com cópia criptografada, preservar edição feita antes da restauração e impedir recriação da cópia removida. Simular conflito de versão/saldo e manter o rascunho.
-- [ ] **Step 3 — executar os testes de navegador e registrar as falhas esperadas.**
-- [ ] **Step 4 — implementar os formulários e estados.** API transporta centavos; o formulário aceita valores brasileiros com até duas casas, rejeita entradas ambíguas/inválidas e apresenta o valor normalizado antes da confirmação. Um resultado incerto só oferece consulta de confirmação e orientação de conferência; não libera repetição automática porque uma consulta ainda não encontrou o UUID.
-- [ ] **Step 5 — executar `node --test tests/*.test.js`, `node tests/browser-check.cjs` e `node tests/operational-browser.cjs`; corrigir qualquer regressão e registrar commit.**
+- [x] **Step 1 — escrever teste de navegador que falha com respostas HTTP controladas.** Exibir lista de NCs/UG pendente, confirmar associação com justificativa, criar NC, reservar crédito, cancelar/concluir e consultar resumo do histórico. Exibir data da fonte separada da consulta. Não exigir UUID ou versão ao usuário. Mostrar confirmação antes de gravar e bloquear duplo clique.
+- [x] **Step 2 — acrescentar testes de falha.** Simular erro antes da escrita e resposta perdida após gravação, preservar o formulário e operationId, consultar confirmação sem novo POST automático. Recarregar com cópia criptografada, preservar edição feita antes da restauração e impedir recriação da cópia removida. Simular conflito de versão/saldo e manter o rascunho.
+- [x] **Step 3 — executar os testes de navegador e registrar as falhas esperadas.**
+- [x] **Step 4 — implementar os formulários e estados.** API transporta centavos; o formulário aceita valores brasileiros com até duas casas, rejeita entradas ambíguas/inválidas e apresenta o valor normalizado antes da confirmação. Um resultado incerto só oferece consulta de confirmação e orientação de conferência; não libera repetição automática porque uma consulta ainda não encontrou o UUID.
+- [x] **Step 5 — executar `node --test tests/*.test.js`, `node tests/browser-check.cjs` e `node tests/operational-browser.cjs`; corrigir qualquer regressão e registrar commit.**
 
 ### Task 5: Prova real isolada e publicação
 

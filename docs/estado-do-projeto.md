@@ -6,7 +6,7 @@ Foram examinadas as 31 abas da Central, incluindo os intervalos existentes, cabe
 
 A versão original oferecia 11 seções e autorizava 12 abas na API. Dados carregados eram mantidos somente na página; a leitura do histórico terminava na linha 1.000 e o tamanho retornado de cada página podia ocultar registros depois de um trecho vazio.
 
-## Etapa 1 — implementação local
+## Etapa 1 — publicada
 
 - Consulta autenticada às 31 abas com links para os identificadores corretos e largura de colunas própria, incluindo as 32 colunas de APRV.
 - Paginação pelos limites atuais da planilha, sem interromper em lacunas. A interface consulta as 31 abas em lote e só substitui o retrato depois de validar o conjunto inteiro, evitando a sequência de chamadas que falhou na primeira prova real.
@@ -40,3 +40,19 @@ O teste usa um token temporário em uma ramificação protegida, com expiração
 | Histórico e auditoria | Histórico oficial e lançamentos do aplicativo | Identidade individual verificada, eventos estruturados, autoria de alteração e recuperação de conflitos |
 
 O responsável digitado no formulário atual é uma declaração do usuário, não uma identidade individual autenticada. O token compartilhado protege o acesso, mas não comprova autoria pessoal. A cópia local depende do armazenamento e das permissões do navegador, e não é um backup institucional.
+
+
+## Etapa 2 — implementação em validação
+
+Desenho e plano aprovados pelo usuário, com execução direta nesta conversa. Confirmado que os registros alimentarão as próprias abas e que haverá um único operador de lançamentos.
+
+Implementados leitura operacional, validação em centavos, confirmação de UG, cadastro e acompanhamento de NC, reserva por NC, cancelamento/conclusão, auditoria atômica e consulta de resultado incerto. A interface recupera o comando pendente pela cópia criptografada opcional, sem reenvio automático. Os 55 testes locais e a verificação de navegador com dados fictícios passaram antes da revisão final.
+
+A prova de integração real desta etapa e a publicação ainda precisam ser concluídas. As colunas de controle oficiais não foram ativadas e nenhum cadastro fictício foi inserido nos dados oficiais.
+
+Ressalva de implementação: o leitor examina as abas operacionais até seus limites atuais, no máximo 10.000 linhas, para não ocultar registros inseridos externamente após a linha 100. Essas linhas são sinalizadas fora do intervalo das fórmulas e não podem receber novos cadastros por esta etapa. Auditoria nova preserva formato/validação do exemplar nativo, e registros com chips ou conteúdo nativo não suportado exigem conferência em vez de serem sobrescritos.
+
+
+### Revisão da etapa 2 — 27/10/2026
+
+Os três pontos importantes encontrados na revisão foram reproduzidos e corrigidos: a recuperação e a repetição de operação verificam conflitos posteriores; a proteção de crédito confere todas as 1.287 fórmulas de A2:M100; e o envio não localizado tem retomada manual dos mesmos dados/UUID após consulta, intervalo de cinco minutos e confirmação explícita. Não há reenvio automático. O navegador com dados fictícios verificou que a retomada não cria outro comando e que a cópia criptografada é gravada antes do POST. A revisão direcionada confirmou as correções.

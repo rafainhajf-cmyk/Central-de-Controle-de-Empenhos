@@ -1,6 +1,6 @@
 # Etapa 2 — NC e distribuição com gravação na planilha
 
-Proposta para revisão — 26/10/2026.
+Desenho aprovado pelo usuário — 26/10/2026. Ajustes de proteção registrados na execução em 27/10/2026.
 
 ## Resultado esperado e decisões confirmadas
 
@@ -61,7 +61,7 @@ Cancelar ou concluir exigirá selecionar a distribuição, reler sua versão e i
 
 Cada operação terá um UUID e uma versão esperada do registro. A alteração operacional e uma nova linha em Histórico serão enviadas juntas. O histórico guardará data/hora, operação, chave, setor, responsável declarado, antes, depois, documento de conferência e identificador da operação. O responsável declarado não será apresentado como identidade individual autenticada.
 
-Uma repetição sequencial de uma operação já confirmada retornará a confirmação existente. A interface bloqueará duplo clique e não repetirá automaticamente um envio cujo resultado seja incerto. O rascunho e o ID serão mantidos na cópia criptografada opcional; a interface oferecerá consultar o resultado antes de permitir nova tentativa. Um erro de rede depois do envio será tratado como resultado pendente de confirmação, sem afirmar que o Google não recebeu os dados.
+Uma repetição sequencial de uma operação já confirmada retornará a confirmação existente. A interface bloqueará duplo clique e não repetirá automaticamente um envio cujo resultado seja incerto. O rascunho e o ID serão mantidos na cópia criptografada opcional; a interface oferecerá consultar o resultado antes de permitir nova tentativa. Uma retomada manual só será oferecida após consulta sem resultado e cinco minutos do último envio; ela exige confirmação explícita, faz nova consulta e preserva integralmente o comando e seu UUID. Um erro de rede depois do envio será tratado como resultado pendente de confirmação, sem afirmar que o Google não recebeu os dados.
 
 Se a versão encontrada diferir da versão selecionada, a operação será recusada com pedido de recarga. Depois de uma gravação, a releitura verificará o estado resultante. Divergência de releitura ficará visível como conflito de conferência, sem apagar o histórico ou tentar desfazer alterações alheias.
 
