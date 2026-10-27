@@ -34,7 +34,7 @@ async function verifyApi() {
   assert.deepEqual(canonical(check[5][0].datasets), canonical(modified));
   console.log('DATABASE_PROBE_OK isolated_write=true readback=true stale_write_blocked=true audit_atomic=true temporary_tables_removed=true');
   const existing = await store.sql().query('SELECT revision FROM budget_program WHERE id = 1');
-  if (existing.length) { console.log('MIGRATION_OK existing_database_preserved revision=' + existing[0].revision); await verifyApi(); return; }
+  if (existing.length) { console.log('MIGRATION_OK existing_database_preserved revision=' + existing[0].revision); await require('../lib/calculation-rules').installRules(store.sql()); await verifyApi(); return; }
   let snapshot, status;
   const req = { method: 'GET', headers: { authorization: 'Bearer ' + process.env.APP_ACCESS_TOKEN }, query: { snapshot: '1' } };
   const res = { setHeader() {}, status(n) { status = n; return this; }, json(d) { snapshot = d; return this; } };
@@ -48,5 +48,6 @@ async function verifyApi() {
   assert.deepEqual(canonical(saved.datasets), canonical(snapshot.datasets), 'Import readback mismatch');
   assert.deepEqual(canonical(saved.imported_datasets), canonical(snapshot.datasets), 'Archive readback mismatch');
   console.log('MIGRATION_OK tables=' + catalog.length + ' rows=' + Object.values(snapshot.datasets).reduce((n,d) => n + d.rows.length, 0) + ' exact_readback=true source_unchanged=true');
+  await require('../lib/calculation-rules').installRules(store.sql());
   await verifyApi();
 })().catch(() => { console.error('MIGRATION_FAILED: publication stopped; inspect database configuration and source access.'); process.exitCode = 1; });

@@ -1,7 +1,7 @@
 /* Persistent program UI. The initial Sheets snapshot is kept in the database, never reapplied on reload. */
 (() => {
   'use strict';
-  let revision = null, loading = false;
+  let revision = null, loading = false, calculation = null;
   const sync = $('sync');
   clearInterval(autoSyncTimer);
   document.removeEventListener('visibilitychange', runDailySync);
@@ -47,9 +47,9 @@
         d = await request('/api/programa');
       }
       for (const sheet of SheetCatalog) if (!d.datasets?.[sheet.title]?.headers || !Array.isArray(d.datasets[sheet.title].rows)) throw Error('Consulta incompleta. Dados anteriores preservados.');
-      for (const key of Object.keys(stores)) delete stores[key]; Object.assign(stores, d.datasets); revision = d.revision;
+      for (const key of Object.keys(stores)) delete stores[key]; Object.assign(stores, d.datasets); revision = d.revision; calculation = d.calculation;
       updateHome(); if (active !== 'inicio') render();
-      $('notice').textContent = 'Banco do programa • ' + Object.keys(d.datasets).length + ' tabelas • Revisão ' + revision + ' • Importação preservada em ' + new Date(d.importedAt).toLocaleString('pt-BR') + '. Edições ficam salvas ao atualizar a página. Indicadores importados das fórmulas da planilha são retratos da importação e ainda não são recalculados pelo programa.';
+      $('notice').textContent = 'Banco do programa • ' + Object.keys(d.datasets).length + ' tabelas • Revisão ' + revision + ' • Importação preservada em ' + new Date(d.importedAt).toLocaleString('pt-BR') + '. Edições e indicadores recalculados no programa • ' + (calculation?.formulas || 0) + ' cálculos automáticos.' + (calculation?.errors?.length ? ' Atenção: há cálculos inválidos; confira os dados de origem.' : '');
       return true;
     } catch (e) { $('notice').textContent = e.message + ' Dados anteriores preservados.'; return false; }
     finally { loading = false; sync.disabled = false; }
@@ -74,11 +74,14 @@
     const original = row === null ? [] : data.rows[row];
     const size = Math.max(data.headers.length, original.length);
     const expectedRevision = revision;
-    dialog.innerHTML = '<form><h2>' + (row === null ? 'Novo registro' : 'Editar registro ' + (row + 1)) + ' — ' + esc(tab) + '</h2><p>Confira os campos antes de salvar. Os indicadores importados não são recalculados automaticamente.</p><div id="programFields"></div><label style="display:block;margin:12px 0">Responsável<input name="actor" required maxlength="100" style="display:block;width:95%"></label><label style="display:block;margin:12px 0">Motivo da alteração<textarea name="reason" required minlength="5" maxlength="1200" style="display:block;width:95%"></textarea></label><div class="actions"><button class="btn primary" type="submit">Salvar no programa</button><button class="btn" type="button" id="programCancel">Cancelar</button></div><p id="programResult" role="status"></p></form>';
+    dialog.innerHTML = '<form><h2>' + (row === null ? 'Novo registro' : 'Editar registro ' + (row + 1)) + ' — ' + esc(tab) + '</h2><p>Confira os campos antes de salvar. Os campos calculados são atualizados automaticamente após salvar os dados de origem.</p><div id="programFields"></div><label style="display:block;margin:12px 0">Responsável<input name="actor" required maxlength="100" style="display:block;width:95%"></label><label style="display:block;margin:12px 0">Motivo da alteração<textarea name="reason" required minlength="5" maxlength="1200" style="display:block;width:95%"></textarea></label><div class="actions"><button class="btn primary" type="submit">Salvar no programa</button><button class="btn" type="button" id="programCancel">Cancelar</button></div><p id="programResult" role="status"></p></form>';
     const fields = dialog.querySelector('#programFields');
     for (let i = 0; i < size; i++) {
       const label = document.createElement('label'); label.style.cssText = 'display:block;margin:10px 0'; label.textContent = data.headers[i] || 'Coluna ' + (i + 1);
-      const input = document.createElement('textarea'); input.name = 'field-' + i; input.value = original[i] ?? ''; input.maxLength = 10000; input.rows = input.value.length > 100 ? 3 : 1; input.style.cssText = 'display:block;width:95%;padding:8px'; label.append(input); fields.append(label);
+      const input = document.createElement('textarea'); input.name = 'field-' + i;
+      let letters='';for(let n=i+1;n;n=Math.floor((n-1)/26))letters=String.fromCharCode(65+(n-1)%26)+letters;
+      const calculated=(row===null&&(calculation?.templateColumns?.[tab]||[]).includes(i))||(calculation?.cells?.[tab]||[]).includes(letters+(row===null?data.rows.length+2:row+2));
+      if(calculated){input.readOnly=true;input.title='Calculado automaticamente a partir dos dados de origem';label.append(document.createTextNode(' • calculado'));input.style.opacity='0.65';} input.value = original[i] ?? ''; input.maxLength = 10000; input.rows = input.value.length > 100 ? 3 : 1; input.style.cssText = 'display:block;width:95%;padding:8px'; label.append(input); fields.append(label);
     }
     const form = dialog.querySelector('form'); form.elements.actor.value = localStorage.getItem('central-actor') || '';
     let pending = null;

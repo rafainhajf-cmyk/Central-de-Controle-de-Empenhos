@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
         return res.status(200).json({ events });
       }
       const d = await store.read();
-      return res.status(200).json({ datasets: d.datasets, revision: d.revision, importedAt: d.imported_at, updatedAt: d.updated_at, source: 'Banco do programa' });
+      return res.status(200).json({ datasets: d.datasets, revision: d.revision, importedAt: d.imported_at, updatedAt: d.updated_at, source: 'Banco do programa', calculation: d.calculation });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
     let body;
