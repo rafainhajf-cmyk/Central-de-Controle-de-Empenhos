@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
         return res.status(200).json({ events });
       }
       const d = await store.read();
-      return res.status(200).json({ datasets: d.datasets, revision: d.revision, importedAt: d.imported_at, updatedAt: d.updated_at, source: 'Banco do programa', credits: d.credits, sectors: d.sectors, directory: d.directory, distributions: d.distributions, calculation: d.calculation });
+      return res.status(200).json({ datasets: d.datasets, revision: d.revision, importedAt: d.imported_at, updatedAt: d.updated_at, source: 'Banco do programa', credits: d.credits, sectors: d.sectors, directory: d.directory, distributions: d.distributions, pendingDistributions: d.pendingDistributions, calculation: d.calculation });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
     let body;
@@ -25,3 +25,4 @@ module.exports = async (req, res) => {
     return res.status(e.status || (infrastructure ? 503 : 400)).json({ error: infrastructure ? 'Banco indisponível. Nenhuma edição foi confirmada; mantenha o formulário aberto.' : e.message });
   }
 };
+
