@@ -64,5 +64,5 @@ $('saveEntry').onclick=async()=>{if(!sessionKey){$('entryResult').textContent='P
 
 if(globalThis.OperationalUI)operationalController=OperationalUI.mount({root:$('operational'),getToken:()=>sessionKey,onRefresh:async()=>{await $('sync').onclick();},onDraftChange:options=>options?.flush?flushCache():saveCache()});
 nav('inicio');
-if(sessionKey){synchronizeDrive().catch(()=>{});}
-</script></body></html>
+
+</script><script src="/program-ui.js"></script></body></html>

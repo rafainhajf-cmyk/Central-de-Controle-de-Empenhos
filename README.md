@@ -53,3 +53,13 @@ O uso por várias pessoas ao mesmo tempo exige rever a coordenação de gravaç�
 Após consultar um envio ainda não localizado e aguardar cinco minutos do último envio, fica disponível uma tentativa manual dos mesmos dados e identificador. O aplicativo consulta novamente antes de repetir e pede confirmação explícita; não gera um identificador novo. A consulta de confirmação sinaliza alterações posteriores no registro, no saldo ou nas fórmulas.
 
 Para testar a interface fictícia: `npm run test:operational`. A prova real é o POST autenticado em `/api/operacoes` com `{"action":"test-operational-write"}`. Ela cria quatro abas temporárias isoladas, usa o mesmo serviço de cadastro/distribuição, confere saldo e histórico e remove somente as abas criadas. Não aceita nomes ou IDs de alvos do cliente e não grava cadastros fictícios nas abas oficiais.
+
+## Migração para o banco — 27/10/2026
+
+O projeto `empenhos` usa agora `DATABASE_URL` da integração Neon. `npm run build` cria a estrutura e, somente quando não existe base, importa as 31 tabelas completas através da conta de serviço, confere a leitura e preserva o retrato original em `imported_datasets`. Publicações posteriores não reimportam nem substituem os dados.
+
+A interface usa `/api/programa` para ler, acrescentar e editar registros. Uma revisão global impede sobrescrever alterações concorrentes; a alteração e seu histórico são salvos na mesma instrução SQL. Comandos possuem UUID para confirmar repetições sem duplicar gravações. Não há exclusão de registros. O responsável é uma declaração do operador, não autenticação de identidade pessoal. A sessão segura HttpOnly dura 30 dias. As rotas antigas de gravação no Google ficam indisponíveis quando `DATABASE_URL` está configurada.
+
+**Limite desta migração:** a base conserva os resultados exibidos pelas fórmulas na importação. A migração não converteu as 6.027 fórmulas para regras próprias. Indicadores derivados não são recalculados após edições, conforme aviso na tela. Os antigos formulários operacionais dependentes do Sheets foram substituídos pelo editor de registros; a validação de reservas e saldos desses formulários não deve ser presumida no editor. Consultas ao trabalho externo do Almox e conciliação de novas fontes ainda precisam de fluxo próprio que preserve as edições. CSV e PDF da consulta permanecem disponíveis.
+
+Validação: `npm test` e `node tests/program-browser.cjs`. Os testes do navegador antigo (`test:browser`, `test:operational`) são históricos da versão Sheets.
