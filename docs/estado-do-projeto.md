@@ -6,7 +6,7 @@ Foram examinadas as 31 abas da Central, incluindo os intervalos existentes, cabe
 
 A versão original oferecia 11 seções e autorizava 12 abas na API. Dados carregados eram mantidos somente na página; a leitura do histórico terminava na linha 1.000 e o tamanho retornado de cada página podia ocultar registros depois de um trecho vazio.
 
-## Etapa 1 — implementação local
+## Etapa 1 — publicada
 
 - Consulta autenticada às 31 abas com links para os identificadores corretos e largura de colunas própria, incluindo as 32 colunas de APRV.
 - Paginação pelos limites atuais da planilha, sem interromper em lacunas. A interface consulta as 31 abas em lote e só substitui o retrato depois de validar o conjunto inteiro, evitando a sequência de chamadas que falhou na primeira prova real.
@@ -28,15 +28,38 @@ O teste usa um token temporário em uma ramificação protegida, com expiração
 
 ## Etapas operacionais ainda pendentes
 
-| Área | Consulta disponível | Funcionalidade operacional pendente |
+| Área | Recursos atuais | Evolução restante |
 | --- | --- | --- |
-| Persistência e sincronização | Retratos do Drive, histórico e cópia criptografada opcional | Recuperação de envios incertos, idempotência transacional, conflitos entre usuários e conciliação de alterações operacionais |
-| NC e distribuição | NCs, saldos, crédito livre e distribuição detalhada | Formulários com valores, vínculo UG/ano/NC, validação de reserva, cancelamento e conclusão sem substituir fórmulas |
+| Persistência e sincronização | Consulta completa, histórico, cópia criptografada, recuperação e retomada manual do mesmo comando | Coordenação transacional para vários operadores e conciliação de alterações externas |
+| NC e distribuição | Cadastros, confirmação de UG, acompanhamento, reserva, cancelamento/conclusão e auditoria | Distribuição por NE, mais de um operador, números de NC repetidos entre UGs e ampliação além da linha 100 com revisão de fórmulas |
 | Empenhos e liquidação | NEs, APRV, crédito retido e liquidação semanal | Movimentos confirmados, vínculo UG/ano/NE e evolução por setor e ND sem inferir liquidação por queda de saldo |
 | Almox | Situação e observação integral, prazos e triagem | Atualizações operacionais com autoria e histórico, conciliação por UG + exercício + NE e validação humana da providência |
 | Processos | Consulta de Processos e PRO | Cadastro, mudanças de etapa, responsáveis, prazos e vínculo com NC/NE |
 | Contratos | Vigência, fiscais e encerramento registrados no Sheets | Formulários de acompanhamento, confirmação de encerramento e alertas de vigência |
 | Metas e painel | Abas analíticas e fórmulas calculadas no Sheets | Indicadores gerenciais próprios, filtros combinados e distinção entre retrato SIAFI e consulta atual |
-| Histórico e auditoria | Histórico oficial e lançamentos do aplicativo | Identidade individual verificada, eventos estruturados, autoria de alteração e recuperação de conflitos |
+| Histórico e auditoria | Histórico geral e eventos estruturados de NC/distribuição com antes/depois e recuperação de conflitos | Identidade individual verificada e eventos dos demais módulos |
 
 O responsável digitado no formulário atual é uma declaração do usuário, não uma identidade individual autenticada. O token compartilhado protege o acesso, mas não comprova autoria pessoal. A cópia local depende do armazenamento e das permissões do navegador, e não é um backup institucional.
+
+
+## Etapa 2 — verificada para publicação
+
+Desenho e plano aprovados pelo usuário, com execução direta nesta conversa. Confirmado que os registros alimentarão as próprias abas e que haverá um único operador de lançamentos.
+
+Implementados leitura operacional, validação em centavos, confirmação de UG, cadastro e acompanhamento de NC, reserva por NC, cancelamento/conclusão, auditoria atômica e consulta de resultado incerto. A interface recupera o comando pendente pela cópia criptografada opcional, sem reenvio automático. Os 56 testes locais e a verificação de navegador com dados fictícios passaram antes da revisão final.
+
+A prova real desta etapa passou em 27/10/2026 na candidata protegida: HTTP 200, `verified: true`, `cleanedUp: true` e `officialDataChanged: false`, em seis segundos. A comparação posterior confirmou igualdade dos conteúdos, fórmulas, validações, notas e chips das 31 abas, além de formatos e conteúdo nativo das cinco abas relevantes. Não restou aba temporária. As colunas de controle oficiais não foram ativadas e nenhum cadastro fictício foi inserido nos dados oficiais.
+
+A interface da candidata sincronizou as 31 abas, exibiu as 12 NCs e nove distribuições reais com UG pendente e recusou um comando inválido com HTTP 400, sem tentativa de gravação oficial. O acesso temporário de automação foi revogado, os parâmetros temporários foram invalidados e as configurações Google permanecem exclusivamente no ambiente de produção. A chave de produção não foi substituída.
+
+Ressalva de implementação: o leitor examina as abas operacionais até seus limites atuais, no máximo 10.000 linhas, para não ocultar registros inseridos externamente após a linha 100. Essas linhas são sinalizadas fora do intervalo das fórmulas e não podem receber novos cadastros por esta etapa. Auditoria nova preserva formato/validação do exemplar nativo, e registros com chips ou conteúdo nativo não suportado exigem conferência em vez de serem sobrescritos.
+
+
+### Revisão da etapa 2 — 27/10/2026
+
+Os três pontos importantes encontrados na revisão foram reproduzidos e corrigidos: a recuperação e a repetição de operação verificam conflitos posteriores; a proteção de crédito confere todas as 1.287 fórmulas de A2:M100; e o envio não localizado tem retomada manual dos mesmos dados/UUID após consulta, intervalo de cinco minutos e confirmação explícita. Não há reenvio automático. O navegador com dados fictícios verificou que a retomada não cria outro comando e que a cópia criptografada é gravada antes do POST. A revisão direcionada confirmou as correções.
+
+
+### Observação da implantação candidata
+
+As chamadas funcionais verificadas responderam corretamente. Os logs registraram um aviso de depreciação DEP0169 sobre url.parse em Node.js 24, também durante a consulta central. Não há chamada url.parse no código da aplicação examinado; o aviso é compatível com a camada de execução e não foi tratado como falha dos fluxos testados. Não foi alterado o runtime nem suprimido o diagnóstico.
