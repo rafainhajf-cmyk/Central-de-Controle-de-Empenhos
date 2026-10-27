@@ -34,7 +34,7 @@ Veja `docs/estado-do-projeto.md`. A cobertura de consulta das 31 abas não repre
 
 ## NC e distribuição — etapa 2
 
-A implementação da etapa 2 está em validação. Ela adiciona os formulários abaixo para um único operador:
+O módulo oferece os formulários abaixo para um único operador:
 
 - **Cadastrar NC:** informe UG, exercício, número completo, ND, data, valores da fonte, finalidade, prazo, responsável e documento de conferência. Recebido deve ser igual a empenhado mais disponível. O cadastro é marcado para conferência com o SIAFI; não atualiza o SIAFI.
 - **Confirmar UG:** selecione um registro antigo e confirme sua unidade com justificativa. Nenhuma UG é atribuída por suposição. A associação grava somente os controles e o histórico.
