@@ -1,0 +1,3 @@
+const { test }=require('node:test'); const assert=require('node:assert/strict'); const {createSessionToken,hashSessionToken,sessionCookie}=require('../lib/user-session');
+test('token é aleatório e banco recebe somente o hash',()=>{const a=createSessionToken(),b=createSessionToken();assert.notEqual(a.token,b.token);assert.equal(hashSessionToken(a.token),a.tokenHash);assert.notEqual(a.token,a.tokenHash);assert.match(sessionCookie(a.token,3600),/HttpOnly; Secure; SameSite=Strict/);});
+test('recusa token e duração inválidos',()=>{assert.throws(()=>hashSessionToken('x'));assert.throws(()=>sessionCookie(createSessionToken().token,0));});
