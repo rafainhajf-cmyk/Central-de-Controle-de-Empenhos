@@ -65,3 +65,9 @@ As 6.029 fórmulas atuais foram convertidas para um interpretador restrito no se
 Validação: `npm test` e `node tests/program-browser.cjs`. Os testes do navegador antigo (`test:browser`, `test:operational`) são históricos da versão Sheets.
 
 A comparação da conversão cobre resultados numéricos com tolerância absoluta inferior a um milionésimo, textos e vazios. Datas correntes usam America/Sao_Paulo no programa. O retrato da origem é conferido no fuso declarado da planilha. Testes adicionais: `tests/calculation-engine.test.js`, incluindo propagação de edições, reservas canceladas/concluídas, datas, novos registros, erros e ciclos.
+
+## Distribuição simples em Créditos
+
+A seção Créditos apresenta o total “Distribuído por nós”, o saldo livre e os setores de cada NC. O botão “Distribuir” abre NC, setor e valor; responsável e observação são opcionais. O total distribuído inclui distribuições concluídas e exclui canceladas; o saldo livre desconta apenas reservas em aberto, evitando descontar novamente valores já empenhados. Valores são validados em centavos no servidor. NCs duplicadas e dados financeiros incertos exigem conferência antes da reserva.
+
+A ação `distribute-credit` relê os dados do banco, valida a revisão e o saldo, preenche a primeira linha inteiramente livre em Distribuições detalhadas, recalcula os indicadores e grava distribuição e auditoria no mesmo comando SQL. O UUID confirma repetições sem duplicar o lançamento. A tela não envia saldos calculados pelo cliente. Não há gravação na planilha do Google. Exportações CSV e PDF de Créditos incluem os totais de distribuição. Verificação da interface: `node tests/credit-browser.cjs`.

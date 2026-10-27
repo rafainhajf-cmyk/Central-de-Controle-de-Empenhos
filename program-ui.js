@@ -1,7 +1,7 @@
 /* Persistent program UI. The initial Sheets snapshot is kept in the database, never reapplied on reload. */
 (() => {
   'use strict';
-  let revision = null, loading = false, calculation = null;
+  let revision = null, loading = false, calculation = null, creditRows = [], sectorOptions = [];
   const sync = $('sync');
   clearInterval(autoSyncTimer);
   document.removeEventListener('visibilitychange', runDailySync);
@@ -16,7 +16,7 @@
   $('home').querySelector('.grid section:last-child').innerHTML = '<h2>Trabalho no programa</h2><p>1. Abra a área desejada e escolha Editar no registro.</p><p>2. Confira os campos e salve com responsável e motivo.</p><p>3. Consulte o histórico das alterações. O programa preserva a importação original.</p><p>4. Exporte a consulta em CSV ou use Gerar PDF.</p>';
   sync.textContent = 'Atualizar dados do programa';
   const controls = document.createElement('div'); controls.className = 'controls';
-  controls.innerHTML = '<button class="btn primary" id="programAdd">Novo registro</button><button class="btn" id="programHistory">Histórico de alterações</button>';
+  controls.innerHTML = '<button class="btn primary" id="creditDistribute" style="display:none">Distribuir crédito</button><button class="btn primary" id="programAdd">Novo registro</button><button class="btn" id="programHistory">Histórico de alterações</button>';
   $('columnControls').before(controls);
   const history = document.createElement('div'); history.className = 'panel hidden'; $('data').prepend(history);
   const dialog = document.createElement('dialog');
@@ -47,7 +47,7 @@
         d = await request('/api/programa');
       }
       for (const sheet of SheetCatalog) if (!d.datasets?.[sheet.title]?.headers || !Array.isArray(d.datasets[sheet.title].rows)) throw Error('Consulta incompleta. Dados anteriores preservados.');
-      for (const key of Object.keys(stores)) delete stores[key]; Object.assign(stores, d.datasets); revision = d.revision; calculation = d.calculation;
+      for (const key of Object.keys(stores)) delete stores[key]; Object.assign(stores, d.datasets); revision = d.revision; calculation = d.calculation; creditRows = d.credits || []; sectorOptions = d.sectors || [];
       updateHome(); if (active !== 'inicio') render();
       $('notice').textContent = 'Banco do programa • ' + Object.keys(d.datasets).length + ' tabelas • Revisão ' + revision + ' • Importação preservada em ' + new Date(d.importedAt).toLocaleString('pt-BR') + '. Edições e indicadores recalculados no programa • ' + (calculation?.formulas || 0) + ' cálculos automáticos.' + (calculation?.errors?.length ? ' Atenção: há cálculos inválidos; confira os dados de origem.' : '');
       return true;
@@ -58,6 +58,11 @@
   const oldRender = render;
   render = function () {
     oldRender();
+    const creditView=active==='creditos'&&selected().tab==='NCs e prazos';
+    $('creditDistribute').style.display=active==='creditos'?'':'none';
+    $('programAdd').textContent=creditView?'Cadastrar NC':'Novo registro';
+    $('columnControls').style.display=creditView?'none':'';
+    if(creditView&&revision!==null){renderCredits();return;}
     const { data } = selected(); if (!data || revision === null) return;
     const table = $('table').querySelector('table'); if (!table) return;
     const th = document.createElement('th'); th.textContent = 'Ação'; table.querySelector('thead tr').append(th);
@@ -67,6 +72,43 @@
     });
     $('moduleInfo').textContent = selected().tab + ' • ' + filtered.length + ' registros • Banco do programa • Revisão ' + revision;
   };
+  const money=cents=>cents===null||cents===undefined?'A conferir':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(cents/100);
+  function creditQuery(){const term=$('search').value.toLocaleLowerCase('pt-BR');return creditRows.filter(c=>[c.nc,c.nd,c.purpose,...c.sectorNames].join(' ').toLocaleLowerCase('pt-BR').includes(term));}
+  const creditHeaders=['NC','ND','Recebido','Empenhado','Disponível na NC','Distribuído por nós','Saldo para distribuir','Setores'];
+  const creditValues=c=>[c.nc,c.nd,money(c.receivedCents),money(c.committedCents),money(c.availableCents),money(c.distributedCents),money(c.freeCents),c.sectorNames.join(', ')];
+  function renderCredits(){
+    const rows=creditQuery();
+    $('table').innerHTML='<p>“Distribuído por nós” soma as distribuições não canceladas. O saldo para distribuir desconta somente as reservas em aberto.</p><table><thead><tr>'+['NC','Distribuído por nós','Saldo para distribuir','Setores'].map(h=>'<th>'+esc(h)+'</th>').join('')+'<th>Ação</th></tr></thead><tbody>'+rows.map(c=>'<tr>'+'<td>'+esc(c.nc)+'<small style="display:block;color:#a7b6c9;white-space:normal">ND '+esc(c.nd)+'<br>Disponível na NC: '+esc(money(c.availableCents))+'</small></td><td style="font-weight:700;color:#67c8bd">'+esc(money(c.distributedCents))+'</td><td>'+esc(money(c.freeCents))+'</td><td style="white-space:normal">'+esc(c.sectorNames.join(', '))+'</td>'+'<td><button class="btn primary" data-distribute-row="'+c.row+'" '+(!c.canDistribute?'disabled':'')+'>Distribuir</button> <button class="btn" data-edit-credit="'+c.row+'">Editar NC</button>'+(c.issue?'<p>'+esc(c.issue)+'</p>':'')+'</td></tr>').join('')+'</tbody></table>';
+    $('table').querySelectorAll('[data-distribute-row]').forEach(b=>b.onclick=()=>distributeCredit(Number(b.dataset.distributeRow)));
+    $('table').querySelectorAll('[data-edit-credit]').forEach(b=>b.onclick=()=>edit(Number(b.dataset.editCredit)));
+    $('moduleInfo').textContent=rows.length+' NCs • Distribuições internas por setor • Revisão '+revision;
+  }
+  function distributeCredit(ncRow=null){
+    if(revision===null)return;
+    const expectedRevision=revision;
+    dialog.innerHTML='<form><h2>Distribuir crédito</h2><label style="display:block;margin:12px 0">NC<select name="ncRow" required style="display:block;width:100%;padding:10px"><option value="">Escolha a NC</option>'+creditRows.map(c=>'<option value="'+c.row+'" '+(!c.canDistribute?'disabled':'')+'>'+esc(c.nc+' • '+c.nd+' • Livre: '+money(c.freeCents))+'</option>').join('')+'</select></label><p id="creditBalance"></p><label style="display:block;margin:12px 0">Setor de destino<input name="sector" list="creditSectors" required maxlength="100" placeholder="Escolha ou digite o setor" style="display:block;width:100%;padding:10px"></label><datalist id="creditSectors">'+sectorOptions.map(s=>'<option value="'+esc(s)+'"></option>').join('')+'</datalist><label style="display:block;margin:12px 0">Quanto distribuir (R$)<input name="amount" required inputmode="decimal" placeholder="Ex.: 1.500,00" style="display:block;width:100%;padding:10px"></label><details><summary>Responsável e observação (opcional)</summary><label style="display:block;margin:12px 0">Responsável<input name="actor" maxlength="100" style="display:block;width:100%"></label><label style="display:block;margin:12px 0">Observação<textarea name="note" maxlength="1200" style="display:block;width:100%"></textarea></label></details><div class="actions" style="margin-top:18px"><button class="btn primary" type="submit">Confirmar distribuição</button><button class="btn" type="button" id="creditCancel">Cancelar</button></div><p id="creditResult" role="status"></p></form>';
+    const form=dialog.querySelector('form');form.elements.actor.value=localStorage.getItem('central-actor')||'';
+    if(ncRow!==null)form.elements.ncRow.value=String(ncRow);
+    form.elements.ncRow.onchange=()=>{const c=creditRows.find(c=>c.row===Number(form.elements.ncRow.value));dialog.querySelector('#creditBalance').textContent=form.elements.ncRow.value&&c?'Já distribuído: '+money(c.distributedCents)+' • Saldo para distribuir: '+money(c.freeCents):'';};form.elements.ncRow.onchange();
+    let pending=null;dialog.querySelector('#creditCancel').onclick=()=>dialog.close();
+    form.onsubmit=async e=>{
+      e.preventDefault();const value=form.elements.amount.value.trim();
+      if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(value)){dialog.querySelector('#creditResult').textContent='Informe o valor em reais, por exemplo 1.500,00.';return;}
+      const amountCents=Math.round(Number(value.replace(/\./g,'').replace(',','.'))*100);
+      const credit=creditRows.find(c=>c.row===Number(form.elements.ncRow.value));
+      if(!credit||!Number.isSafeInteger(amountCents)||amountCents<=0||amountCents>credit.freeCents){dialog.querySelector('#creditResult').textContent='Informe um valor maior que zero, dentro do saldo livre da NC.';return;}
+      const command={id:pending?.id||crypto.randomUUID(),action:'distribute-credit',revision:expectedRevision,ncRow:credit.row,sector:form.elements.sector.value.trim(),amountCents,actor:form.elements.actor.value.trim()||'Operador do painel',note:form.elements.note.value.trim()};
+      if(pending&&JSON.stringify(command)!==JSON.stringify(pending)){dialog.querySelector('#creditResult').textContent='Confirme o envio anterior com os mesmos dados antes de alterá-los.';return;}
+      pending=command;const button=form.querySelector('[type=submit]');button.disabled=true;
+      try{await request('/api/programa',command);if(form.elements.actor.value.trim())localStorage.setItem('central-actor',command.actor);dialog.close();await load();$('notice').textContent+=' Distribuição salva: '+money(amountCents)+' para '+command.sector+'.';}
+      catch(error){if([400,401,409].includes(error.status))pending=null;dialog.querySelector('#creditResult').textContent=error.message+(error.status===409?' Feche o formulário e atualize os créditos.':' Mantenha o formulário aberto se o envio estiver sem confirmação.');}
+      finally{button.disabled=false;}
+    };dialog.showModal();
+  }
+  $('creditDistribute').onclick=()=>distributeCredit();
+  const oldExport=$('export').onclick,oldPrint=$('printPdf').onclick;
+  $('export').onclick=()=>{if(active!=='creditos'||selected().tab!=='NCs e prazos')return oldExport();const lines=[creditHeaders,...creditQuery().map(creditValues)].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');const url=URL.createObjectURL(new Blob(['\uFEFF'+lines],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='creditos-e-distribuicoes.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+  $('printPdf').onclick=()=>active==='creditos'&&selected().tab==='NCs e prazos'?window.print():oldPrint();
   function edit(row = null) {
     const { tab, data } = selected();
     if (!data || revision === null) return;
