@@ -1,3 +1,14 @@
 #operational{margin:20px 0}.op-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}.op-heading h2{margin:0}.op-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.op-field{display:flex;flex-direction:column;gap:7px;color:#b5c8dd;font-size:12px}.op-field input,.op-field select,.op-field textarea{width:100%;border:1px solid #39506c;border-radius:8px;background:#14243a;color:#e6f0ff;padding:11px;font:inherit;min-height:40px}.op-field textarea{min-height:86px;resize:vertical}.op-action{margin:20px 0;max-width:430px}#op-form fieldset{padding:0;margin:0;border:0;min-width:0}#op-form fieldset:disabled{opacity:.7}.op-list{max-height:300px}.op-summary p{margin:8px 0 0}.op-note,.op-history{font-size:12px;color:#aabbd0}.op-history{margin-top:20px}.op-history summary{cursor:pointer}.op-history p{padding:10px 0;border-bottom:1px solid #283b53}.op-field input:focus,.op-field select:focus,.op-field textarea:focus{outline:2px solid #67c8bd;outline-offset:1px}@media(max-width:760px){.op-grid{grid-template-columns:1fr}.op-heading{align-items:flex-start;flex-direction:column}}
 
 .op-pending-summary{margin:14px 0;font-size:12px;color:#bbcadc}.op-pending-summary pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.6}
+
+/* Primary credit workflows remain distinct in the navigation, including on tablets. */
+.nav[data-id="creditos"]{background:#322719;color:#ffe0a0;border-left:3px solid #e8b45c;font-weight:650}
+.nav[data-id="creditos"]:hover{background:#47351c;color:#fff0cf}
+.nav[data-id="creditos"].active{background:#5c4219;color:#fff3db;border-left-color:#ffd078}
+.nav[data-id="distribuicao"]{background:#142f4a;color:#b8ddff;border-left:3px solid #69b8f3;font-weight:650}
+.nav[data-id="distribuicao"]:hover{background:#1b4263;color:#e4f3ff}
+.nav[data-id="distribuicao"].active{background:#224e74;color:#eff8ff;border-left-color:#91d0ff}
+.nav[data-id="creditos"]:focus-visible,.nav[data-id="distribuicao"]:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.distribution-note{display:block;white-space:normal;max-width:280px;margin-top:6px;color:#b9cadd;font-size:12px;line-height:1.45}
+@media print{.distribution-note{color:#000}}
