@@ -3,6 +3,17 @@ const assert = require('node:assert/strict');
 const store = require('../lib/program-store');
 const catalog = require('../sheet-catalog');
 function canonical(v) { if (Array.isArray(v)) return v.map(canonical); if (v && typeof v === 'object') return Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])); return v; }
+async function verifyApi() {
+  let status, body, cookie;
+  const res = { setHeader(k, v) { if (k === 'Set-Cookie') cookie = v; }, status(n) { status = n; return this; }, json(v) { body = v; return this; } };
+  await require('../api/sessao')({ method: 'POST', headers: { authorization: 'Bearer ' + process.env.APP_ACCESS_TOKEN } }, res);
+  assert.equal(status, 200); assert.ok(cookie);
+  await require('../api/programa')({ method: 'GET', query: {}, headers: { cookie: cookie.split(';')[0] } }, res);
+  assert.equal(status, 200); assert.equal(Object.keys(body.datasets).length, catalog.length);
+  await require('../api/programa')({ method: 'GET', query: {}, headers: {} }, res);
+  assert.equal(status, 401);
+  console.log('SERVER_API_PROBE_OK authorized_read=true cookie_session=true unauthenticated_blocked=true');
+}
 (async () => {
   await store.schema();
   // Temporary shadow tables exist only inside this transaction; no fictitious entry reaches production data.
@@ -23,7 +34,7 @@ function canonical(v) { if (Array.isArray(v)) return v.map(canonical); if (v && 
   assert.deepEqual(canonical(check[5][0].datasets), canonical(modified));
   console.log('DATABASE_PROBE_OK isolated_write=true readback=true stale_write_blocked=true audit_atomic=true temporary_tables_removed=true');
   const existing = await store.sql().query('SELECT revision FROM budget_program WHERE id = 1');
-  if (existing.length) { console.log('MIGRATION_OK existing_database_preserved revision=' + existing[0].revision); return; }
+  if (existing.length) { console.log('MIGRATION_OK existing_database_preserved revision=' + existing[0].revision); await verifyApi(); return; }
   let snapshot, status;
   const req = { method: 'GET', headers: { authorization: 'Bearer ' + process.env.APP_ACCESS_TOKEN }, query: { snapshot: '1' } };
   const res = { setHeader() {}, status(n) { status = n; return this; }, json(d) { snapshot = d; return this; } };
@@ -37,4 +48,5 @@ function canonical(v) { if (Array.isArray(v)) return v.map(canonical); if (v && 
   assert.deepEqual(canonical(saved.datasets), canonical(snapshot.datasets), 'Import readback mismatch');
   assert.deepEqual(canonical(saved.imported_datasets), canonical(snapshot.datasets), 'Archive readback mismatch');
   console.log('MIGRATION_OK tables=' + catalog.length + ' rows=' + Object.values(snapshot.datasets).reduce((n,d) => n + d.rows.length, 0) + ' exact_readback=true source_unchanged=true');
+  await verifyApi();
 })().catch(() => { console.error('MIGRATION_FAILED: publication stopped; inspect database configuration and source access.'); process.exitCode = 1; });
