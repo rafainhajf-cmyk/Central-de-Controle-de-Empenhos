@@ -75,3 +75,9 @@ A ação `distribute-credit` relê os dados do banco, valida a revisão e o sald
 ## Providências e pendências do fiscal
 
 No diálogo de destinação da NC, o operador pode distribuir para setor, solicitar recolhimento ou solicitar mudança de ND. As solicitações exigem valor, número do DIEx e, na mudança, ND de destino. A observação curta aparece em texto pequeno no crédito. O registro permanece no banco e na auditoria; nenhuma mensagem ou DIEx é enviado automaticamente. Solicitações não reduzem o saldo nem alteram a ND de origem. O saldo não distribuído, incluindo o remanescente de distribuições parciais, aparece como pendência do Fiscal em Créditos, no cartão inicial e em Pendências e cobranças. O acompanhamento permanece enquanto houver saldo livre ou inconsistência a conferir.
+
+## Cadastros de setores e responsáveis
+
+O menu Cadastros gerencia setores e responsáveis com criação, edição, vínculo e inativação, preservando os lançamentos históricos. Cada responsável pode ter um setor ou ser isolado (`sectorId: null`). Setores já utilizados são apresentados inicialmente sem inferir vínculos pessoais antigos. Após o primeiro cadastro, o diretório fica persistido em Configuração, dentro da mesma transação de revisão e auditoria do programa.
+
+Na distribuição, a seleção filtra os responsáveis pelo setor e mantém disponíveis os isolados. É possível distribuir diretamente para um isolado, deixando o setor vazio. O servidor valida os vínculos e grava o destinatário no campo de responsável da distribuição, separado do autor do registro na auditoria. Não se pode inativar setor com responsáveis ativos vinculados. Renomeações não reescrevem documentos anteriores. Testes: `tests/directory.test.js` e `tests/directory-browser.cjs`.
