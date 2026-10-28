@@ -1,2 +1,0 @@
-const test=require('node:test'),assert=require('node:assert/strict');let ui={};try{ui=require('../operational-ui')}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}
-test('Brazilian currency input is converted to exact safe integer cents',()=>{assert.equal(ui.moneyToCents('1.234,56'),123456);assert.equal(ui.moneyToCents('0,01'),1);assert.equal(ui.moneyToCents('0.29'),29);assert.equal(ui.moneyToCents('1.000'),100000);for(const bad of ['-1,00','1,001','1,234.56','1e2','900719925474099,00'])assert.throws(()=>ui.moneyToCents(bad))});

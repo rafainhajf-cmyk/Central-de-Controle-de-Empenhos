@@ -1,0 +1,14 @@
+@media print {
+ @page{size:A4;margin:14mm}
+ body{background:#fff!important;color:#111!important;font-size:10pt}
+ header,nav,button,form,.toolbar,#filters,#recovery,.foot.quiet,#gerencialLogin,#gerencialMessage,#message{display:none!important}
+ body[data-print-target="report"] main>*,body[data-print-target="report"] #workspace>*{display:none!important}
+ body[data-print-target="report"] main>#workspace,body[data-print-target="report"] #workspace>#reportPanel{display:block!important}
+ #reportPanel{border:0;padding:0}
+ #gerencialContent article{break-inside:avoid;border:1px solid #aaa;box-shadow:none}
+ body[data-print-target="gerencial"] details{display:block}
+ body[data-print-target="gerencial"] details>dl{display:grid!important}
+ body[data-print-target="gerencial"] details:has(form),body[data-print-target="gerencial"] details.history-panel{display:none}
+ .needs-review{border-left:4px solid #b42318!important}
+ table{border-collapse:collapse;width:100%}th,td{border:1px solid #aaa;padding:5px;text-align:left}
+}

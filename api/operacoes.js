@@ -4,7 +4,6 @@ const {productionContext,readOperationalState,toReadModel,executeOperation,findO
 const {validateCommand}=require('../lib/operational-model');
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 function createHandler({getContext=async()=>productionContext(await accessToken())}={}){return async(req,res)=>{
- if(process.env.DATABASE_URL)return res.status(410).json({error:'Controle migrado. Use os lançamentos no banco do programa.'});
  res.setHeader('Cache-Control','no-store, private');res.setHeader('X-Content-Type-Options','nosniff');
  if(!authorized(req))return res.status(401).json({error:'Não autorizado',code:'UNAUTHORIZED'});
  if(!['GET','POST'].includes(req.method))return res.status(405).json({error:'Método não permitido'});

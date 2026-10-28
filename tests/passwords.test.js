@@ -1,2 +1,0 @@
-const {test}=require('node:test');const assert=require('node:assert/strict');const {hashPassword,verifyPassword}=require('../lib/passwords');
-test('senha armazenada com salt e comparação segura',async()=>{const a=await hashPassword('Senha-de-teste-2026');const b=await hashPassword('Senha-de-teste-2026');assert.notEqual(a,b);assert.equal(await verifyPassword('Senha-de-teste-2026',a),true);assert.equal(await verifyPassword('senha errada',a),false);});

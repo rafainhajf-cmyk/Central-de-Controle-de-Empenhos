@@ -1,13 +1,5 @@
 node_modules/
-.env
-.env.*
-!.env.example
+.env*
 .vercel/
-*.csv
-*.xlsx
-*.pem
-*.key
-playwright-report/
-test-results/
-
+release-checks/
 public/
