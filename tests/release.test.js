@@ -85,12 +85,12 @@ test('Excel export is a native XLSX ZIP with Unicode, numeric cells and no execu
 });
 test('generate API reads Neon, persists candidates once, and returns them under individual access',async()=>{
  const db=await dbFixture();try{
-  await cache.commitSnapshot(db,fixture(),{actorId:'admin',runId:'generate-import'});
+  const sourceState=fixture();delete sourceState.sourceRecords[0].fields.nd;await cache.commitSnapshot(db,sourceState,{actorId:'admin',runId:'generate-import'});
   const handle=require('../api/meu-dia').createHandler({getDB:()=>db,getIdentity:async()=>actor});
   const request={method:'POST',headers:{host:'example.test',origin:'https://example.test','content-type':'application/json','x-central-request':'1'},query:{},body:{action:'generate',operationId:crypto.randomUUID()}};
   const first=response();await handle(request,first);assert.equal(first.statusCode,200);assert.ok(first.body.generated>0);
   const repeat=response();await handle(request,repeat);assert.deepEqual(repeat.body,first.body);
-  const read=response();await handle({method:'GET',query:{}},read);assert.equal(read.statusCode,200);assert.equal(read.body.activities.length,first.body.generated);
+  const read=response();await handle({method:'GET',query:{}},read);assert.equal(read.statusCode,200);assert.equal(read.body.activities.length,first.body.generated);assert.ok(read.body.activities.some(r=>r.issues.includes('APRV_NE_DEADLINE_EXCLUDED')));
   const events=(await db.query('SELECT actor_id,count(*)::integer AS n FROM central_day.events GROUP BY actor_id')).rows;assert.equal(events.length,1);assert.equal(events[0].actor_id,'admin');assert.equal(events[0].n,first.body.generated);
  }finally{await db.close();}
 });
