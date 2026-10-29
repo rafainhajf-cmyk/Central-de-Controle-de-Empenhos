@@ -1,6 +1,6 @@
 'use strict';
 (()=>{
- const panel=document.getElementById('loginPanel');if(!panel)return;
+ const panel=document.getElementById('loginPanel');if(!panel)return;panel.hidden=false;
  const make=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
  const section=make('section');section.className='panel';section.append(make('h3','Acesso do administrador'),make('p','Entre com seu e-mail e a senha própria da Central.'));
  const status=make('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');

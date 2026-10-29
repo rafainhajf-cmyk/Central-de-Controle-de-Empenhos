@@ -76,3 +76,8 @@ test('forged cookies and expired sessions fail closed',async()=>{
  const res=response();await admin.login(db,{},res,{email:profile.email,password});state.sessions[0].expires_at=0;assert.equal(await admin.readSession(db,{headers:{cookie:res.headers['Set-Cookie'][0].split(';')[0]}}),null);
  assert.equal(admin.tokenFrom({headers:{cookie:'__Host-central_admin=x; __Host-central_admin=y'}}),null);
 });
+test('local administrator identity works without calling the Google or Neon Auth service',async()=>{
+ const {db}=await configured(),res=response();await admin.login(db,{},res,{email:profile.email,password});
+ const req={headers:{cookie:res.headers['Set-Cookie'][0].split(';')[0]}};
+ const identity=await require('../lib/identity').getIdentity(req,response(),db);assert.equal(identity.userId,profile.user_id);assert.equal(identity.role,'admin');
+});
