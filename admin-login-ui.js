@@ -17,7 +17,7 @@
  const confirm=field(setup,'Repita a nova senha','password','adminSetupConfirm','new-password');
  const save=make('button','Definir senha do administrador');setup.append(save);details.append(setup);section.append(details);panel.prepend(section);
  async function post(body,token){
-  const response=await fetch('/api/admin-login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Central-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});
+  const response=await fetch('/api/identidade',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Central-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({...body,action:'admin-'+body.action})});
   const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível confirmar o acesso.');return data;
  }
  login.onsubmit=async e=>{e.preventDefault();enter.disabled=true;status.textContent='Verificando acesso…';const secret=password.value;password.value='';try{await post({action:'login',email:email.value,password:secret});window.location.assign('/gerencial');}catch(e){status.textContent=e.message;}finally{enter.disabled=false;}};

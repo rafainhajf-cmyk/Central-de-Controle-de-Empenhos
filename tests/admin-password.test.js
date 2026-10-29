@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const admin=require('../lib/admin-password'),{createHandler}=require('../api/admin-login');
+const admin=require('../lib/admin-password'),{createHandler}=require('../lib/admin-login-handler');
 const profile={user_id:'owner-id',name:'Administrador',email:'owner@example.test',role:'admin',sectors:[],active:true};
 function fixture(){
  const state={profile:{...profile},credentials:null,sessions:[],events:[],attempts:0};
