@@ -8,6 +8,11 @@ function createHandler(deps={}){
   try{
    if(!['GET','POST'].includes(req.method))return res.status(405).json({error:'Método não permitido.'});
    if(req.method==='GET'){
+    if(req.query?.login==='1'){
+     identity.closed(req.query,['login']);const db=getDB();
+     const count=(await db.query("SELECT count(*)::int AS n FROM central_day.admin_credentials c JOIN central_day.profiles p ON p.user_id=c.user_id WHERE p.role='admin' AND p.active=true")).rows[0].n;
+     return res.status(200).json({adminPasswordConfigured:count>0});
+    }
     if(Object.keys(req.query||{}).some(k=>!['users','access','requests'].includes(k)))identity.fail('Consulta inválida.');
     const db=getDB(),user=await getIdentity(req,res,db);
     if(req.query?.users==='1'){

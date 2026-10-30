@@ -12,7 +12,7 @@
     "build": "node scripts/build-release.cjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.12",
