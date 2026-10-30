@@ -29,6 +29,6 @@
   // The fragment is never sent as a URL parameter or kept in browser history.
   window.history.replaceState(null,'',window.location.pathname+window.location.search);
   enter.disabled=true;status.textContent='Abrindo sua sessão neste dispositivo…';
-  post({action:'link',token:access[1]}).then(()=>window.location.replace('/gerencial')).catch(e=>{status.textContent=e.message;enter.disabled=false;});
+  post({action:'link',token:access[1]}).then(()=>window.location.replace('/central')).catch(e=>{status.textContent=e.message;enter.disabled=false;});
  }
 })();

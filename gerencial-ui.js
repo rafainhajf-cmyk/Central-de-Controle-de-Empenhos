@@ -2,7 +2,7 @@
 (()=>{
  const $=id=>document.getElementById(id),AREAS=[['panel','Resumo'],['commitments','Empenhos e Liquidação'],['credits','Créditos e NCs'],['distribution','Distribuição por Setores'],['processes','Processos'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
  const FLOW={almox:'Almoxarifado',fiscal:'Fiscalização',aprv:'APRV'},money=v=>Number.isSafeInteger(v)?(v/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'A conferir';
- let state=null,area='panel',creditMode='available',loading=false,syncing=false;
+ let state=null,area=window.location.pathname.replace(/\/$/,'')==='/central'?'commitments':'panel',creditMode='available',loading=false,syncing=false;
  function node(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
  function selected(records){const q=$('gerencialSearch').value.trim().toLocaleLowerCase('pt-BR'),sector=$('gerencialSector').value;return records.filter(r=>(!sector||r.sector===sector)&&(!q||[r.number,r.subject,r.sector,r.owner,r.supplier,r.nextAction].join(' ').toLocaleLowerCase('pt-BR').includes(q)));}
  function openCommitments(){return state.commitments.filter(r=>$('includeClosed')?.checked||!(r.remainingCents===0&&/liquidad/i.test(r.reportedStage||'')));}
