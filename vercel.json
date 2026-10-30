@@ -4,8 +4,18 @@
   "functions": {
     "api/operacoes.js": {
       "maxDuration": 300
+    },
+    "api/sincronizacao.js": {
+      "maxDuration": 300
     }
   },
-  "buildCommand": "npm run build",
+  "crons": [
+    {
+      "path": "/api/sincronizacao",
+      "schedule": "15 13 * * *"
+    }
+  ],
+  "name": "empenhos",
+  "buildCommand": "npm test && npm run build",
   "outputDirectory": "public"
 }

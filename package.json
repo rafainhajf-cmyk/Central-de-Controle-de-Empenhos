@@ -6,15 +6,20 @@
     "test": "node --test tests/*.test.js",
     "test:browser": "node tests/browser-check.cjs",
     "test:operational": "node tests/operational-browser.cjs",
-    "build": "node scripts/migrate.js && node scripts/build-static.js"
+    "test:day": "node tests/day-browser.cjs",
+    "test:gerencial": "node tests/gerencial-browser.cjs",
+    "test:integration": "node scripts/verify-neon.cjs",
+    "build": "node scripts/build-release.cjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.12",
     "playwright": "1.62.1"
   },
   "dependencies": {
-    "@neondatabase/serverless": "1.0.2"
+    "@neondatabase/auth": "0.7.0-beta",
+    "pg": "8.23.1"
   }
 }
