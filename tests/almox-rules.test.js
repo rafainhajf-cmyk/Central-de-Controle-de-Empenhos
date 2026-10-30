@@ -31,3 +31,7 @@ test('individual deadline overrides default and invalid dates never become inven
  assert.ok(run({dueOn:'2026-12-01'}).every(t=>t.dueOn==='2026-12-01'));
  const tasks=run({issuedOn:null});assert.ok(tasks.every(t=>t.dueOn===null));assert.ok(tasks.every(t=>t.issues.includes('DATE_PENDING')));
 });
+
+test('closed contracts are preserved in the source without generating a new follow-up',()=>{
+ const source={complete:true,records:[{key:'contract-one',kind:'contract',fields:{number:'1/2026',status:'Encerrado'}}]};assert.deepEqual(deriveActivities(source),[]);assert.equal(source.records.length,1);
+});
