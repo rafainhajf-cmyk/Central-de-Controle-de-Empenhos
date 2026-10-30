@@ -2,7 +2,7 @@
 (()=>{
  const $=id=>document.getElementById(id);let tab=null,offset=0,current=null,epoch=0,timer;
  const legacyAreas={credits:'NCs e prazos',distribution:'Distribuições detalhadas',commitments:'NEs e liquidação',processes:'Processos e PRO',goals:'Base para metas',contracts:'Contratos e fiscais'};
- async function get(params){const r=await fetch('/api/fontes?'+new URLSearchParams(params),{credentials:'same-origin',cache:'no-store'}),d=await r.json();if(!r.ok){const e=Error(d.error||'Consulta indisponível.');e.status=r.status;throw e;}return d;}
+ async function get(params){const r=await fetch('/api/central?fontes=1&'+new URLSearchParams(params),{credentials:'same-origin',cache:'no-store'}),d=await r.json();if(!r.ok){const e=Error(d.error||'Consulta indisponível.');e.status=r.status;throw e;}return d;}
  function drawCatalog(catalog){$('sourceTabs').replaceChildren();for(const s of catalog){const a=document.createElement('a');a.textContent=s.title+' · '+s.count;a.href='/central?tab='+encodeURIComponent(s.title);a.setAttribute('aria-current',s.title===tab?'page':'false');a.onclick=e=>{e.preventDefault();tab=s.title;offset=0;$('sourceSearch').value='';load();};$('sourceTabs').append(a);}}
  async function load(){const generation=++epoch;$('sourceMessage').textContent='Consultando os dados preservados…';try{
   const d=await get({tab,q:$('sourceSearch').value,offset:String(offset)});if(generation!==epoch)return;current=d;drawCatalog(d.catalog);$('sourceAccess').hidden=true;$('sourceWorkspace').hidden=false;$('sourceTitle').textContent=tab;$('sourceMeta').textContent='Última sincronização: '+new Date(d.updatedAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})+' · Data da fonte: '+(d.sourceDate||'A conferir');$('sourceMessage').textContent=d.notice;
