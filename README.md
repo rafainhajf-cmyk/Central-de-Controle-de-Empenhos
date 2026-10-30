@@ -4,9 +4,17 @@ Aplicação existente na Vercel, projeto `empenhos`. Esta árvore recupera o có
 
 ## Acesso e persistência
 
-O administrador também entra por senha própria da Central, com sessão segura de oito horas ou trinta dias no dispositivo lembrado. O endereço /central abre o mesmo painel do Neon e carrega os registros automaticamente. Links pessoais de uso único permitem ativar a sessão sem digitar a senha; são vinculados ao administrador ativo, expiram e deixam de funcionar após troca da senha. Os demais acessos individuais usam Neon Auth; perfis e setores são verificados no servidor. Novos acessos Google passam pela autorização do titular. A configuração é fornecida pelas variáveis já existentes da Vercel; não coloque valores no repositório.
+O administrador também entra por senha própria da Central, com sessão segura de oito horas ou trinta dias no dispositivo lembrado. O endereço /central abre a Central de Fontes e /gerencial abre o acompanhamento em tabelas; ambos carregam o retrato preservado no Neon. Links pessoais de uso único permitem ativar a sessão sem digitar a senha; são vinculados ao administrador ativo, expiram e deixam de funcionar após troca da senha. Os demais acessos individuais usam Neon Auth; perfis e setores são verificados no servidor. Novos acessos Google passam pela autorização do titular. A configuração é fornecida pelas variáveis já existentes da Vercel; não coloque valores no repositório.
 
 O painel e o Meu Dia usam o mesmo retrato salvo em `central_day.management_snapshots`, com ajustes de acompanhamento em `management_manual`. A sincronização preserva os ajustes e identifica fontes ausentes. Gerar atividades não consulta o Drive nem escreve nas fontes: usa os dados preservados no Neon e registra os eventos com a identidade do operador.
+
+## Distribuição por setores
+
+Na tabela, “Alterar / OKs” permite corrigir setor, responsável, finalidade, valor em acompanhamento e observação. O primeiro OK registra cada requisição entregue, com valor, data e número do documento. O segundo OK registra cada empenhamento vinculado àquela requisição; ambos aceitam parcelas. O sistema mostra o que falta requisitar, o que aguarda empenhamento, o saldo total a empenhar e os dias decorridos entre a entrega e o empenhamento.
+
+O arquivamento exige saldo em acompanhamento zerado. Correções preservam os registros originais por estorno, e todas as mudanças têm autoria e motivo. Esses registros não alteram os saldos oficiais da NC no SIAFI. Distribuições antigas recebem identificação local quando a combinação dos dados da origem é única; linhas ambíguas permanecem para conferência. A sincronização preserva os ajustes e não reaproveita a identidade de uma origem diferente.
+
+Os comandos usam versão e identificador de operação para evitar duplicação. Um envio sem resposta é preservado no armazenamento da sessão deste navegador, permitindo consultar sua confirmação após recarregar; o aplicativo não o reenvia automaticamente. Fechar a aba encerra essa cópia local, mas os registros já confirmados permanecem no banco.
 
 ## Recursos desta revisão
 
