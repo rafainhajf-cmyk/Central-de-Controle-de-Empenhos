@@ -23,6 +23,7 @@ function createHandler(deps={}){
     return res.status(200).json({user,...(req.query?.access==='1'?{access,canApprove:user?.role==='admin'&&user.email?.toLowerCase()===process.env.CENTRAL_OWNER_EMAIL?.toLowerCase()}: {})});
    }
    identity.requireSameOrigin(req);const b=identity.readBody(req);if(typeof b.action!=='string')identity.fail('Ação inválida.');
+   if(['admin-login','admin-setup','admin-logout','admin-password'].includes(b.action))return require('../lib/admin-login-handler').createHandler(deps)({...req,body:{...b,action:b.action.slice(6)}},res);
    const allowed={login:['email','password'],logout:[],'google-start':[],'access-decision':['request'],bootstrap:['profile'],'create-user':['profile'],'update-user':['profile'],'change-password':['currentPassword','newPassword']};
    if(!Object.hasOwn(allowed,b.action))identity.fail('Ação inválida.');identity.closed(b,['action',...allowed[b.action]]);
    if(b.action==='google-start'){
@@ -53,12 +54,14 @@ function createHandler(deps={}){
     return res.status(200).json({user:{userId:p.user_id,name:p.name,email:p.email,role:p.role,sectors:p.sectors,active:true}});
    }
    if(b.action==='logout'){
+    if(require('../lib/admin-password').tokenFrom(req))return res.status(200).json(await require('../lib/admin-password').logout(db,req,res));
     const auth=await neonServer(req,res),r=await auth.signOut();if(r.error)identity.fail('Não foi possível confirmar a saída. Tente novamente.',503,'LOGOUT_UNCONFIRMED');
     return res.status(200).json({signedOut:true});
    }
    const actor=await getIdentity(req,res,db);if(!actor)identity.fail('Entre com seu usuário.',401,'UNAUTHORIZED');
    if(b.action==='access-decision')return res.status(200).json(await require('../lib/google-access').decide(db,actor,b.request));
    if(b.action==='change-password'){
+    if(require('../lib/admin-password').tokenFrom(req))return res.status(200).json(await require('../lib/admin-password').changePassword(db,req,res,b));
     if(typeof b.currentPassword!=='string'||typeof b.newPassword!=='string'||b.newPassword.length<12||b.newPassword.length>128)identity.fail('Use senha entre 12 e 128 caracteres.');
     const r=await(await neonServer(req,res)).changePassword({currentPassword:b.currentPassword,newPassword:b.newPassword,revokeOtherSessions:true});
     if(r.error)identity.fail('Não foi possível alterar a senha.',400,'PASSWORD_CHANGE_FAILED');return res.status(200).json({updated:true});
@@ -71,3 +74,4 @@ function createHandler(deps={}){
  };
 }
 module.exports=createHandler();module.exports.createHandler=createHandler;
+
