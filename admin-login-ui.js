@@ -8,6 +8,7 @@
  const login=make('form');login.className='form';
  const email=field(login,'E-mail do administrador','email','adminEmail','username');
  const password=field(login,'Senha da Central','password','adminPassword','current-password');
+ const rememberLabel=make('label','Manter conectado neste dispositivo por 30 dias');rememberLabel.className='inline';const remember=make('input');remember.type='checkbox';remember.checked=true;remember.id='adminRemember';rememberLabel.prepend(remember);login.append(rememberLabel);
  const enter=make('button','Entrar como administrador');login.append(enter);section.append(login,status);
  const details=make('details');details.append(make('summary','Definir a primeira senha do administrador'),make('p','Use a chave atual do painel uma única vez. A senha será vinculada ao perfil de administrador existente.'));
  const setup=make('form');setup.className='form';
@@ -21,6 +22,13 @@
   const response=await fetch('/api/identidade',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Central-Request':'1',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({...body,action:'admin-'+body.action})});
   const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível confirmar o acesso.');return data;
  }
- login.onsubmit=async e=>{e.preventDefault();enter.disabled=true;status.textContent='Verificando acesso…';const secret=password.value;password.value='';try{await post({action:'login',email:email.value,password:secret});window.location.assign('/gerencial');}catch(e){status.textContent=e.message;}finally{enter.disabled=false;}};
+ login.onsubmit=async e=>{e.preventDefault();enter.disabled=true;status.textContent='Verificando acesso…';const secret=password.value;password.value='';try{await post({action:'login',email:email.value,password:secret,remember:remember.checked});window.location.assign('/gerencial');}catch(e){status.textContent=e.message;}finally{enter.disabled=false;}};
  setup.onsubmit=async e=>{e.preventDefault();if(next.value!==confirm.value){status.textContent='As senhas precisam ser iguais.';return;}save.disabled=true;const secret=next.value,token=key.value,mail=owner.value;key.value=next.value=confirm.value='';status.textContent='Configurando a senha…';try{await post({action:'setup',email:mail,password:secret},token);email.value=mail;details.open=false;details.hidden=true;status.textContent='Senha definida. Entre acima com seu e-mail e a senha da Central.';}catch(e){status.textContent=e.message;}finally{save.disabled=false;}};
+ const access=/^#acesso=([a-f0-9]{64})$/.exec(window.location.hash);
+ if(access){
+  // The fragment is never sent as a URL parameter or kept in browser history.
+  window.history.replaceState(null,'',window.location.pathname+window.location.search);
+  enter.disabled=true;status.textContent='Abrindo sua sessão neste dispositivo…';
+  post({action:'link',token:access[1]}).then(()=>window.location.replace('/central')).catch(e=>{status.textContent=e.message;enter.disabled=false;});
+ }
 })();

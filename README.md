@@ -4,7 +4,7 @@ Aplicação existente na Vercel, projeto `empenhos`. Esta árvore recupera o có
 
 ## Acesso e persistência
 
-O administrador também entra por senha própria da Central, com sessão segura de oito horas. Os demais acessos individuais usam Neon Auth; perfis e setores são verificados no servidor. Novos acessos Google passam pela autorização do titular. A configuração é fornecida pelas variáveis já existentes da Vercel; não coloque valores no repositório.
+O administrador também entra por senha própria da Central, com sessão segura de oito horas ou trinta dias no dispositivo lembrado. O endereço /central abre o mesmo painel do Neon e carrega os registros automaticamente. Links pessoais de uso único permitem ativar a sessão sem digitar a senha; são vinculados ao administrador ativo, expiram e deixam de funcionar após troca da senha. Os demais acessos individuais usam Neon Auth; perfis e setores são verificados no servidor. Novos acessos Google passam pela autorização do titular. A configuração é fornecida pelas variáveis já existentes da Vercel; não coloque valores no repositório.
 
 O painel e o Meu Dia usam o mesmo retrato salvo em `central_day.management_snapshots`, com ajustes de acompanhamento em `management_manual`. A sincronização preserva os ajustes e identifica fontes ausentes. Gerar atividades não consulta o Drive nem escreve nas fontes: usa os dados preservados no Neon e registra os eventos com a identidade do operador.
 
