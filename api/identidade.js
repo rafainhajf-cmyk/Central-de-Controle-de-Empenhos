@@ -41,6 +41,8 @@ function createHandler(deps={}){
    const db=getDB();
    if(b.action==='login'){
     if(typeof b.email!=='string'||!/^\S+@\S+\.\S+$/.test(b.email)||b.email.length>254||typeof b.password!=='string'||b.password.length>128||!b.password)identity.fail('Dados de entrada inválidos.');
+    const local=(await db.query('SELECT 1 FROM central_day.admin_credentials c JOIN central_day.profiles p ON p.user_id=c.user_id WHERE lower(p.email)=$1',[b.email.trim().toLowerCase()])).rows.length;
+    if(local)return res.status(200).json(await require('../lib/admin-password').login(db,req,res,b));
     await profiles.limitLogin(db,req,b.email.trim().toLowerCase());
     // Stage provider cookies until the application profile is confirmed.
     const staged={headers:{},setHeader(k,v){this.headers[k]=v},getHeader(k){return this.headers[k]}};

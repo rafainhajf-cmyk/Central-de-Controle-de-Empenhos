@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),{PGlite}=require('@electric-sql/pglite');
 const admin=require('../lib/admin-password'),identity=require('../lib/identity');
-function response(){return {headers:{},setHeader(k,v){this.headers[k]=v;},getHeader(k){return this.headers[k];}};}
+function response(){return {headers:{},setHeader(k,v){this.headers[k]=v;},getHeader(k){return this.headers[k];},status(n){this.statusCode=n;return this;},json(body){this.body=body;return this;}};}
 test('administrator setup, login, identity after reload, password change and revocation on Postgres',async()=>{
  const db=new PGlite(),previous=process.env.CENTRAL_OWNER_EMAIL;process.env.CENTRAL_OWNER_EMAIL='owner@example.test';
  const actor={userId:'owner-test',email:'owner@example.test',role:'admin',active:true,sectors:[]};
@@ -11,6 +11,8 @@ test('administrator setup, login, identity after reload, password change and rev
   await admin.setup(db,{}, {email:actor.email,password:'Initial-admin-password'},actor);
   const res=response();await admin.login(db,{},res,{email:actor.email,password:'Initial-admin-password'});
   const req={headers:{cookie:res.headers['Set-Cookie'][0].split(';')[0]}};
+  const regular=response();await require('../api/identidade').createHandler({getDB:()=>db,neonServer(){throw Error('Google must not be used for a local administrator');}})({method:'POST',headers:{host:'central.test',origin:'https://central.test','content-type':'application/json','x-central-request':'1'},body:{action:'login',email:actor.email,password:'Initial-admin-password'}},regular);
+  assert.equal(regular.statusCode,200);assert.equal(regular.body.user.userId,actor.userId);
   assert.equal((await identity.getIdentity(req,response(),db)).userId,actor.userId);
   assert.equal((await identity.getIdentity({...req},response(),db)).role,'admin');
   const credentials=(await db.query('SELECT user_id,password_hash FROM central_day.admin_credentials')).rows;

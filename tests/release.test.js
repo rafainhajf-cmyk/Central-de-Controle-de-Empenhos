@@ -24,6 +24,7 @@ test('Meu Dia uses saved Neon snapshot, manual fields and preserved Almox annota
   await assert.rejects(()=>require('../lib/day-sources').loadDaySources(db),e=>e.code==='SYNC_REQUIRED');
   await cache.commitSnapshot(db,fixture(),{actorId:'admin',runId:'import-1'});
   await cache.saveManualFields(db,actor,{key:'ne|160111|2026|2026NE000001',expectedVersion:1,fields:{sector:'APRV',owner:'Responsável atual',nextAction:'Conferir com o setor',dueOn:'2026-11-02'}});
+  await cache.saveManualFields(db,actor,{key:'ne|160111|2026|2026NE000001',expectedVersion:2,fields:{firstNotifiedOn:'2026-10-20',sentToSupplierOn:'2026-10-01'}});
   const source=await require('../lib/day-sources').loadDaySources(db),ne=source.records.find(r=>r.kind==='ne');
   assert.equal(source.storage,'Neon');assert.equal(ne.fields.sector,'APRV');assert.equal(ne.fields.owner,'Responsável atual');assert.equal(ne.fields.dueOn,'2026-11-02');assert.equal(ne.originalAlmox.observation,'Anotação original');
   await cache.saveManualFields(db,actor,{key:'contract|CONTRATO-1',expectedVersion:1,fields:{owner:'Fiscal atual',nextAction:'Conferir aditivo'}});
@@ -31,6 +32,7 @@ test('Meu Dia uses saved Neon snapshot, manual fields and preserved Almox annota
   const before=(await db.query('SELECT source_data FROM central_day.management_sources WHERE key=$1',[ne.key])).rows[0];
   await cache.commitSnapshot(db,fixture(),{actorId:'system-sync',runId:'import-2'});
   const again=await require('../lib/day-sources').loadDaySources(db);assert.equal(again.records.find(r=>r.key===ne.key).fields.owner,'Responsável atual');
+  assert.equal(again.records.find(r=>r.key===ne.key).fields.firstNotifiedOn,'2026-10-20');assert.equal(again.records.find(r=>r.key===ne.key).fields.sentToSupplierOn,'2026-10-01');
   assert.deepEqual((await db.query('SELECT source_data FROM central_day.management_sources WHERE key=$1',[ne.key])).rows[0],before);
  }finally{await db.close();}
 });
@@ -44,7 +46,7 @@ test('general deadlines are versioned, audited, scoped, validated, and do not re
   await assert.rejects(()=>settings.save(db,actor,{expectedVersion:1,rules:{...rules,dispatchDays:-1}}),e=>e.status===400);
   assert.equal((await db.query("SELECT count(*)::int AS n FROM central_day.management_changes WHERE kind='deadline-rules-edited'")).rows[0].n,1);
   const source={complete:true,records:[{key:'ne-one',kind:'ne',fields:{number:'2026NE000001',ug:'160111',year:2026,nd:'339030',subitem:'99',sector:'ALMOX',assignedOn:'2026-10-01'}}]};
-  assert.equal(deriveActivities(source,[],rules).find(r=>r.rule==='send').dueOn,'2026-10-12');
+  assert.equal(deriveActivities(source,[],rules).find(r=>r.rule==='send').dueOn,'2026-10-08');
   source.records[0].fields.dueOn='2026-11-02';assert.equal(deriveActivities(source,[],rules)[0].dueOn,'2026-11-02');
   assert.equal((await db.query('SELECT count(*)::int AS n FROM central_day.activities')).rows[0].n,0);
  }finally{await db.close();}
@@ -94,3 +96,4 @@ test('generate API reads Neon, persists candidates once, and returns them under 
   const events=(await db.query('SELECT actor_id,count(*)::integer AS n FROM central_day.events GROUP BY actor_id')).rows;assert.equal(events.length,1);assert.equal(events[0].actor_id,'admin');assert.equal(events[0].n,first.body.generated);
  }finally{await db.close();}
 });
+

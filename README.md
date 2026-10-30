@@ -4,7 +4,7 @@ Aplicação existente na Vercel, projeto `empenhos`. Esta árvore recupera o có
 
 ## Acesso e persistência
 
-O login individual usa Neon Auth; perfis e setores são verificados no servidor. Novos acessos Google passam pela autorização do titular. A configuração é fornecida pelas variáveis já existentes da Vercel; não coloque valores no repositório.
+O administrador também entra por senha própria da Central, com sessão segura de oito horas. Os demais acessos individuais usam Neon Auth; perfis e setores são verificados no servidor. Novos acessos Google passam pela autorização do titular. A configuração é fornecida pelas variáveis já existentes da Vercel; não coloque valores no repositório.
 
 O painel e o Meu Dia usam o mesmo retrato salvo em `central_day.management_snapshots`, com ajustes de acompanhamento em `management_manual`. A sincronização preserva os ajustes e identifica fontes ausentes. Gerar atividades não consulta o Drive nem escreve nas fontes: usa os dados preservados no Neon e registra os eventos com a identidade do operador.
 
@@ -24,3 +24,8 @@ As datas e valores importados continuam identificados como informações da font
 A pasta `public` contém apenas os arquivos de interface. O cenário `/release-checks` é gerado exclusivamente quando o comando de build recebe `--browser-fixture`, em uma candidata, e contém somente dados fictícios. Não é incluído na publicação normal.
 
 A validação da interface com dados fictícios cobre filtros, classificação, dias, contratos, histórico, geração do arquivo Excel e acionamento da impressão. O fluxo completo com o login individual real da Central ainda precisa de uma sessão concluída no navegador; o acesso confirmado à Vercel não equivale a esse login.
+
+
+## Regras operacionais finais
+
+Sincronização automática às 10h15 de Brasília. O Almox usa dias corridos: 5 para envio, 30 para entrega, 10 de resposta a cada notificação e revisão semanal do PA. As regras gerais são editáveis; prazos individuais e histórico são preservados. As datas de envio, entrega, notificações e PA podem ser informadas em Editar acompanhamento. A geração não considera uma data estimada como comprovação de envio. Empenhos liquidados sem saldo podem ser ocultados da consulta sem apagar o histórico.

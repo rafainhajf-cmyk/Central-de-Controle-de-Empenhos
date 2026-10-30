@@ -12,7 +12,7 @@
   "crons": [
     {
       "path": "/api/sincronizacao",
-      "schedule": "0 9 * * *"
+      "schedule": "15 13 * * *"
     }
   ],
   "name": "empenhos",
