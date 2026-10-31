@@ -7,8 +7,8 @@
   for(const ne of state.commitments||[])if(ne.holdingCredit&&positive(ne.remainingCents))put(2,ne.sector,ne.owner,'NE segurando crédito',ne.number,ne.remainingCents,ne.nextAction||'Verificar manutenção ou anulação do saldo');
   for(const p of state.processes||[])if(!/encerrad|concluíd/i.test(p.reportedState||''))put(3,p.sector,p.owner,'Licitação em andamento',p.reference||p.subject,p.estimatedCents,p.nextAction||p.reportedState||'Conferir fase da licitação');
   for(const ne of state.commitments||[])if(positive(ne.remainingCents)&&!ne.holdingCredit&&ne.flow==='fiscal')put(4,ne.sector,ne.owner,'Empenho — Fiscalização',ne.number,ne.remainingCents,ne.nextAction||'Conferir execução, ateste e nota fiscal');
-  for(const ne of state.commitments||[])if(positive(ne.remainingCents)&&!ne.holdingCredit&&ne.flow!=='fiscal')put(5,ne.sector,ne.owner,'Empenho — demais fluxos',ne.number,ne.remainingCents,ne.nextAction||'Conferir entrega e liquidação');
-  rows.sort((a,b)=>a.sector.localeCompare(b.sector,'pt-BR')||a.owner.localeCompare(b.owner,'pt-BR')||a.priority-b.priority||a.reference.localeCompare(b.reference,'pt-BR'));
+  for(const ne of state.commitments||[])if(positive(ne.remainingCents)&&!ne.holdingCredit&&ne.flow!=='fiscal')put(5,ne.sector,ne.owner,ne.flow?'Empenho — demais fluxos':'Empenho — classificação a conferir',ne.number,ne.remainingCents,ne.nextAction||'Conferir entrega, classificação e liquidação');
+  rows.sort((a,b)=>a.sector.localeCompare(b.sector,'pt-BR')||a.owner.localeCompare(b.owner,'pt-BR')||a.priority-b.priority||String(a.reference||'').localeCompare(String(b.reference||''),'pt-BR'));
   return rows;
  }
  const headers=['Setor','Responsável','Ordem','Tipo de pendência','NC / NE / PRO','Valor em R$ (quando conhecido)','Providência'];
