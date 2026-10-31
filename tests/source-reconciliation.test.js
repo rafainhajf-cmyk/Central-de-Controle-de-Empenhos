@@ -20,3 +20,12 @@ test('NC reconciliation checks received committed and available by NC and UG',()
  const central=[['2026NC400013','','','',3700,3700,0,'','','','160111']];
  assert.equal(compare({official,central,kind:'nc'}).differences.length,0);
 });
+
+test('duplicate NC identity is rejected even when third copy occurs',()=>{
+ const official=[['','2026NC400013','','160111','','','','',3700,3700,0]];
+ const row=['2026NC400013','','','',3700,3700,0,'','','','160111'];
+ const result=compare({official,central:[row,row,row],kind:'nc'});
+ assert.ok(result.issues.some(x=>x.code==='DUPLICATE'));
+ assert.ok(result.differences.some(x=>x.code==='MISSING_IN_CENTRAL'));
+});
+test('unsupported reconciliation types are rejected',()=>{assert.throws(()=>compare({official:[],central:[],kind:'contract'}),/Tipo inválido/);});
