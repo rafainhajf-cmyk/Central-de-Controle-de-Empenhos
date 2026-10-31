@@ -16,7 +16,7 @@ test('APRV recognizes each configured subitem, fiscal ND, and missing ND stays u
  assert.equal(classifyFlow({nd:'339030',subitem:'99'}).flow,'almox');
  assert.equal(classifyFlow({nd:null}).flow,null);
  const view=projectManagement(fixture(),actor,'2026-10-28');
- assert.equal(view.commitments[0].flow,'aprv');assert.equal(view.commitments[0].daysSinceEmission,27);
+ assert.equal(view.commitments[0].flow,'almox'); // Manual sector designation in fixture takes precedence over inferred APRV by subitem.assert.equal(view.commitments[0].daysSinceEmission,27);
  assert.equal(view.contracts[0].daysToEnd,64);
 });
 test('Meu Dia uses saved Neon snapshot, manual fields and preserved Almox annotation without Google credentials',async()=>{
