@@ -8,14 +8,15 @@ test('Almox defaults count weekends: five days for dispatch then thirty for deli
  const first=tasks.find(t=>t.rule==='first-notification');assert.equal(first.dueOn,'2026-11-06');assert.ok(first.issues.includes('ESTIMATED_DISPATCH'));
 });
 test('reported dispatch and explicit delivery deadline replace the estimated date',()=>{
- const sent=run({sentToSupplierOn:'2026-10-05'});assert.equal(sent.some(t=>t.rule==='send'),false);assert.equal(sent[0].dueOn,'2026-11-04');assert.equal(sent[0].issues.includes('ESTIMATED_DISPATCH'),false);
- assert.equal(run({deliveryDueOn:'2026-11-20'}).find(t=>t.rule==='first-notification').dueOn,'2026-11-20');
+ const sent=run({sentToSupplierOn:'2026-10-05'});assert.equal(sent.some(t=>t.rule==='send'),false);assert.equal(sent[0].dueOn,'2026-11-06');assert.equal(sent[0].issues.includes('ESTIMATED_DISPATCH'),false);
+ assert.equal(run({deliveryDueOn:'2026-11-20'}).find(t=>t.rule==='first-notification').dueOn,'2026-11-06');
 });
-test('notification response periods are ten calendar days and PA follow-up is weekly',()=>{
- assert.equal(run({firstNotifiedOn:'2026-10-02'})[0].dueOn,'2026-10-12');assert.equal(run({firstNotifiedOn:'2026-10-02'})[0].rule,'second-notification');
- assert.equal(run({secondNotifiedOn:'2026-10-02'})[0].dueOn,'2026-10-12');assert.equal(run({secondNotifiedOn:'2026-10-02'})[0].rule,'administrative-process');
+test('notification response periods are five business days and PA follow-up is weekly',()=>{
+ assert.equal(run({firstNotifiedOn:'2026-10-02'})[0].dueOn,'2026-10-09');assert.equal(run({firstNotifiedOn:'2026-10-02'})[0].rule,'second-notification');
+ assert.equal(run({secondNotifiedOn:'2026-10-02'})[0].dueOn,'2026-10-09');assert.equal(run({secondNotifiedOn:'2026-10-02'})[0].rule,'administrative-process');
  assert.equal(run({paOpenedOn:'2026-10-02'})[0].dueOn,'2026-10-09');
 });
+test('business day notice deadlines skip weekends and listed holidays',()=>{const records={complete:true,records:[{key:'ne-test',kind:'ne',fields:{...fields,firstNotifiedOn:'2026-10-02'}}]};const t=deriveActivities(records,[{day:'2026-10-05'}]);assert.equal(t[0].dueOn,'2026-10-12');});
 test('legacy notification statuses use their date and missing dates require review',()=>{
  assert.equal(run({status:'13. notificada (1)',notifiedOn:'2026-10-02'})[0].rule,'second-notification');
  assert.equal(run({status:'14. notificada (2 not)',notifiedOn:'2026-10-02'})[0].rule,'administrative-process');
