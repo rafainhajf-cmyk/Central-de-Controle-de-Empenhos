@@ -10,8 +10,33 @@
  function card(title,summary,fields){const c=node('article',undefined,'decision');c.append(node('h3',title),node('p',summary,'summary'));if(fields){const d=node('details'),dl=node('dl');d.append(node('summary','Detalhes e fonte'));for(const [label,value]of fields)dl.append(node('dt',label),node('dd',value==null||value===''?'Sem informação':String(value)));d.append(dl);c.append(d);}return c;}
  function list(records,build){const filtered=selected(records);if(!filtered.length)$('gerencialContent').append(node('p','Nenhum registro nesta consulta e nos filtros selecionados.','empty'));for(const r of filtered)$('gerencialContent').append(build(r));}
  async function post(url,body){const r=await fetch(url,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Central-Request':'1'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw Error(data.error||(data.state==='busy'?'Uma atualização já está em andamento.':'Não foi possível confirmar a operação.'));return data;}
+ function registeredOptions(field,current=''){
+  const records=state?.commitments||[];
+  const values=field==='sector'?['ALMOX','APRV','Fiscalização']:
+   field==='owner'?records.map(x=>x.owner):
+   records.flatMap(x=>[x.almox?.status,x.reportedStage]);
+  return [...new Set([current,...values].filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ }
+ function pickInput(label,field,current,required=false){
+  const wrap=node('label',label),select=node('select');
+  select.required=required;
+  select.append(new Option(required?'Selecione uma opção':'Não informado',''));
+  for(const option of registeredOptions(field,current))select.append(new Option(option,option));
+  select.value=current||'';wrap.append(select);return {wrap,input:select};
+ }
  function editor(r){const d=node('details'),form=node('form',undefined,'form');d.append(node('summary','Editar acompanhamento'));const inputs={},labels={...(r.reportedStage!==undefined||r.reportedState!==undefined?{status:'Etapa atual'}:{}),sector:'Setor',owner:'Responsável',observation:'Observação',nextAction:'Próxima providência',dueOn:'Prazo individual de acompanhamento',...(r.flow==='almox'?{sentToSupplierOn:'Enviado ao fornecedor em',deliveryDueOn:'Prazo de entrega informado',firstNotifiedOn:'Primeira notificação em',secondNotifiedOn:'Segunda notificação em',paOpenedOn:'PA aberto em'}:{})};
- for(const [key,label]of Object.entries(labels)){if(['status','sector','owner','dueOn','sentToSupplierOn','deliveryDueOn','firstNotifiedOn','secondNotifiedOn','paOpenedOn'].includes(key)&&!state.permissions?.canEditAssignment)continue;const l=node('label',label),input=node(key==='observation'?'textarea':'input');if(key==='sector'){const suggestions=[...new Set([r.sector,...(state?.commitments||[]).map(x=>x.sector),...(state?.distributions||[]).map(x=>x.sector),...(state?.processes||[]).map(x=>x.sector),...(state?.contracts||[]).map(x=>x.sector)].filter(Boolean))].sort();const list=node('datalist');list.id='sector-options-'+Math.random().toString(36).slice(2);for(const sector of suggestions)list.append(new Option(sector,sector));input.setAttribute('list',list.id);l.append(list);}if(['dueOn','sentToSupplierOn','deliveryDueOn','firstNotifiedOn','secondNotifiedOn','paOpenedOn'].includes(key))input.type='date';input.value=(key==='status'?r.reportedStage||r.reportedState:r[key])||'';input.maxLength=key==='observation'?12000:1000;inputs[key]=input;l.append(input);form.append(l);}const save=node('button','Salvar acompanhamento');form.append(save);form.onsubmit=async e=>{e.preventDefault();save.disabled=true;try{const fields=Object.fromEntries(Object.entries(inputs).map(([k,v])=>[k,v.value]));await post('/api/campos-gerenciais',{key:r.id,expectedVersion:r.manualVersion,fields});await refresh();$('gerencialMessage').textContent='Acompanhamento salvo. Atualizações do Drive preservam seus campos.';}catch(e){$('gerencialMessage').textContent=e.message;}finally{save.disabled=false;}};d.append(form);d.append(history(r.id));return d;}
+ for(const [key,label]of Object.entries(labels)){
+  if(['status','sector','owner','dueOn','sentToSupplierOn','deliveryDueOn','firstNotifiedOn','secondNotifiedOn','paOpenedOn'].includes(key)&&!state.permissions?.canEditAssignment)continue;
+  const current=(key==='status'?r.reportedStage||r.reportedState:r[key])||'';
+  if(['sector','owner','status'].includes(key)){
+   const field=key==='status'?'status':key,{wrap,input}=pickInput(label,field,current,key==='sector');
+   inputs[key]=input;form.append(wrap);continue;
+  }
+  const l=node('label',label),input=node(key==='observation'?'textarea':'input');
+  if(['dueOn','sentToSupplierOn','deliveryDueOn','firstNotifiedOn','secondNotifiedOn','paOpenedOn'].includes(key))input.type='date';
+  input.value=current;input.maxLength=key==='observation'?12000:1000;inputs[key]=input;l.append(input);form.append(l);
+ }
+ const save=node('button','Salvar acompanhamento');form.append(save);form.onsubmit=async e=>{e.preventDefault();save.disabled=true;try{const fields=Object.fromEntries(Object.entries(inputs).map(([k,v])=>[k,v.value]));await post('/api/campos-gerenciais',{key:r.id,expectedVersion:r.manualVersion,fields});await refresh();$('gerencialMessage').textContent='Acompanhamento salvo. Atualizações do Drive preservam seus campos.';}catch(e){$('gerencialMessage').textContent=e.message;}finally{save.disabled=false;}};d.append(form);d.append(history(r.id));return d;}
  function assignmentForm(r){
   const section=node('section',undefined,'assignment-editor'),heading=node('h3','Atribuir setor e responsável · '+r.number),form=node('form',undefined,'form'),message=node('p');
   section.append(heading);
@@ -20,7 +45,7 @@
   const current=/^almox(?:arifado)?$/i.test((r.sector||'').trim())?'ALMOX':/^aprv$/i.test((r.sector||'').trim())?'APRV':/^fiscaliza[cç][aã]o$/i.test((r.sector||'').trim())?'Fiscalização':'';
   for(const [value,label] of [['','Selecione a área'],['ALMOX','Almoxarifado'],['APRV','APRV'],['Fiscalização','Fiscalização']])sector.append(new Option(label,value));
   sector.value=current;sector.required=true;sectorLabel.append(sector);
-  const ownerLabel=node('label','Responsável pelo empenho'),owner=node('input');owner.value=r.owner||'';owner.required=true;ownerLabel.append(owner);
+  const {wrap:ownerLabel,input:owner}=pickInput('Responsável pelo empenho','owner',r.owner||'',true);
   const save=node('button','Salvar setor e responsável');save.type='submit';
   message.setAttribute('role','status');form.append(sectorLabel,ownerLabel,save,message);
   form.onsubmit=async e=>{e.preventDefault();const updatedSector=sector.value.trim(),updatedOwner=owner.value.trim();if(!updatedSector||!updatedOwner){message.textContent='Informe setor e responsável.';return;}save.disabled=true;try{await post('/api/campos-gerenciais',{key:r.id,expectedVersion:r.manualVersion,fields:{sector:updatedSector,owner:updatedOwner}});await refresh();$('gerencialMessage').textContent='Setor e responsável da NE '+r.number+' salvos no Neon.';}catch(error){message.textContent=error.message;}finally{save.disabled=false;}};
