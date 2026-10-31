@@ -15,7 +15,7 @@
  function assignmentForm(r){
   const section=node('section',undefined,'assignment-editor'),heading=node('h3','Atribuir setor e responsável · '+r.number),form=node('form',undefined,'form'),message=node('p');
   section.append(heading);
-  if(!state.permissions?.canEditAssignment||!r.manualVersion||!/^ne\\|/.test(r.id||'')){section.append(node('p','Atribuição indisponível para este registro ou perfil. Confira a identificação da NE.'));return section;}
+  if(!state.permissions?.canEditAssignment||!r.manualVersion||!String(r.id||'').startsWith('ne|')){section.append(node('p','Atribuição indisponível para este registro ou perfil. Confira a identificação da NE.'));return section;}
   const sectorLabel=node('label','Setor responsável'),sector=node('input'),list=node('datalist');
   list.id='assignment-sectors-'+r.number.replace(/[^a-z0-9]/gi,'')+'-'+String(r.ug||'');
   const names=[...new Set([r.sector,...(state.commitments||[]).map(x=>x.sector),...(state.distributions||[]).map(x=>x.sector),...(state.processes||[]).map(x=>x.sector)].filter(Boolean))].sort();
