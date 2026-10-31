@@ -27,6 +27,14 @@ test('delivered and fully liquidated commitments do not request delivery notific
  assert.equal(run({status:'11. falta providência do setor requisitante'})[0].rule,'service-request');
  assert.equal(run({nd:'449052'})[0].rule,'send');
 });
+test('ALMOX delivered to liquidation requires collecting supplier invoices, not assuming payment',()=>{
+ const tasks=run({status:'1. entregue a liquidar',sector:'ALMOX',remainingCents:50000});
+ assert.equal(tasks.length,1);
+ assert.equal(tasks[0].rule,'almox-invoice');
+ assert.match(tasks[0].subject,/notas fiscais/);
+ assert.ok(tasks[0].issues.includes('INVOICE_DELIVERY_UNCONFIRMED'));
+ assert.equal(run({status:'1. entregue a liquidar',sector:'Fiscalização'})[0].rule,'payment');
+});
 test('individual deadline overrides default and invalid dates never become invented dates',()=>{
  assert.ok(run({dueOn:'2026-12-01'}).every(t=>t.dueOn==='2026-12-01'));
  const tasks=run({issuedOn:null});assert.ok(tasks.every(t=>t.dueOn===null));assert.ok(tasks.every(t=>t.issues.includes('DATE_PENDING')));
