@@ -32,6 +32,7 @@ test('stale concurrent commands and failed audit roll back balance and operation
 });
 test('current manual sector controls access and UUID confirmation cannot reveal a transferred record',async()=>{
  const db=await setup();try{
+  await db.query("INSERT INTO central_day.profiles(user_id,email,name,role,sectors,active) VALUES('sector-aprv','aprv@example.test','Responsável APRV','operator',ARRAY['APRV'],true)");
   const c=cmd(await store.readFinancialBook(db,actor,key),'reconcile',{includedMovementIds:[]});await store.executeFinancialCommand(db,actor,c);
   await assert.rejects(()=>store.readFinancialBook(db,other,key),e=>e.status===404);await assert.rejects(()=>store.executeFinancialCommand(db,other,c),e=>e.status===403);
   await cache.saveManualFields(db,actor,{key,expectedVersion:1,fields:{sector:'APRV'}});
@@ -62,3 +63,4 @@ test('financial API rejects missing login, foreign origin, unauthorized actor an
   const ok=response();await make(actor)({method:'POST',headers,body},ok);assert.equal(ok.statusCode,200);assert.equal(ok.body.state,'confirmed');
  }finally{await db.close();}
 });
+
