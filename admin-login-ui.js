@@ -2,14 +2,14 @@
 (()=>{
  const panel=document.getElementById('loginPanel');if(!panel)return;panel.hidden=false;
  const make=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
- const section=make('section');section.className='panel';section.append(make('h3','Acesso do administrador'),make('p','Entre com seu e-mail e a senha própria da Central.'));
+ const section=make('section');section.className='panel';section.append(make('h3','Entrar com senha'),make('p','Use seu e-mail ou login e a senha da Central.'));
  const status=make('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  function field(form,label,type,id,autocomplete){const l=make('label',label),n=make('input');n.type=type;n.id=id;n.autocomplete=autocomplete;n.required=true;n.maxLength=type==='email'?254:128;if(autocomplete==='new-password')n.minLength=12;l.append(n);form.append(l);return n;}
  const login=make('form');login.className='form';
- const email=field(login,'E-mail do administrador','email','adminEmail','username');
+ const email=field(login,'E-mail ou login','text','adminEmail','username');
  const password=field(login,'Senha da Central','password','adminPassword','current-password');
  const rememberLabel=make('label','Manter conectado neste dispositivo por 30 dias');rememberLabel.className='inline';const remember=make('input');remember.type='checkbox';remember.checked=true;remember.id='adminRemember';rememberLabel.prepend(remember);login.append(rememberLabel);
- const enter=make('button','Entrar como administrador');login.append(enter);section.append(login,status);
+ const enter=make('button','Entrar na Central');login.append(enter);section.append(login,status);
  const details=make('details');details.append(make('summary','Definir a primeira senha do administrador'),make('p','Use a chave atual do painel uma única vez. A senha será vinculada ao perfil de administrador existente.'));
  const setup=make('form');setup.className='form';
  const owner=field(setup,'E-mail do administrador','email','adminSetupEmail','username');
