@@ -17,7 +17,7 @@ function createHandler(deps={}){return async(req,res)=>{
    if(query.report)return res.status(200).json(await reports.report(db,actor,query.report,query.date,query.sector));
    if(query.calendar==='1')return res.status(200).json({calendar:(await db.query('SELECT day::text,kind,label FROM central_day.calendar ORDER BY day LIMIT 10000')).rows,notice:'Os prazos consideram fins de semana e os feriados/dias sem expediente cadastrados. Confira a cobertura do período.'});
    if(query.directory==='1'){
-    const global=['admin','manager'].includes(actor.role);const people=(await db.query(`SELECT user_id,name,sectors FROM central_day.profiles WHERE active AND ${global?'TRUE':'sectors && $1::text[]'} ORDER BY name LIMIT 1000`,global?[]:[actor.sectors])).rows;
+    const global=['admin','manager'].includes(actor.role)||actor.globalRead===true;const people=(await db.query(`SELECT user_id,name,sectors FROM central_day.profiles WHERE active AND ${global?'TRUE':'sectors && $1::text[]'} ORDER BY name LIMIT 1000`,global?[]:[actor.sectors])).rows;
     const sectors=(await db.query(`SELECT DISTINCT sector FROM central_day.activities WHERE sector IS NOT NULL ${global?'':'AND sector=ANY($1::text[])'} ORDER BY sector`,global?[]:[actor.sectors])).rows.map(r=>r.sector);
     return res.status(200).json({people,sectors:[...new Set([...sectors,...actor.sectors])]});
    }
@@ -44,3 +44,4 @@ function createHandler(deps={}){return async(req,res)=>{
  }catch(e){return res.status([400,401,403,404,409,413,429,503].includes(e.status)?e.status:503).json({error:e.status?e.message:'Meu Dia temporariamente indisponível. Dados anteriores preservados.',code:e.code||'DAY_UNAVAILABLE'});}
 };}
 module.exports=createHandler();module.exports.createHandler=createHandler;
+

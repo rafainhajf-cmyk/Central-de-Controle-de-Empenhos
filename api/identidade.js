@@ -17,7 +17,7 @@ function createHandler(deps={}){
     const db=getDB(),user=await getIdentity(req,res,db);
     if(req.query?.users==='1'){
      if(!can(user,'manage-users'))identity.fail('Acesso não autorizado.',403,'FORBIDDEN');
-     return res.status(200).json({users:(await db.query('SELECT p.user_id,p.name,coalesce(c.login,p.email) AS email,p.role,p.sectors,p.active FROM central_day.profiles p LEFT JOIN central_day.admin_credentials c ON c.user_id=p.user_id ORDER BY p.name LIMIT 1000')).rows});
+     return res.status(200).json({users:(await db.query('SELECT p.user_id,p.name,coalesce(c.login,p.email) AS email,p.role,p.sectors,p.active,p.global_read AS \"globalRead\" FROM central_day.profiles p LEFT JOIN central_day.admin_credentials c ON c.user_id=p.user_id ORDER BY p.name LIMIT 1000')).rows});
     }
     if(req.query?.requests==='1'){
      require('../lib/google-access').requireOwner(user);
@@ -60,11 +60,7 @@ function createHandler(deps={}){
     if(staged.headers['Set-Cookie'])res.setHeader('Set-Cookie',staged.headers['Set-Cookie']);
     return res.status(200).json({user:{userId:p.user_id,name:p.name,email:p.email,role:p.role,sectors:p.sectors,active:true}});
    }
-   if(b.action==='logout'){
-    if(require('../lib/admin-password').tokenFrom(req))return res.status(200).json(await require('../lib/admin-password').logout(db,req,res));
-    const auth=await neonServer(req,res),r=await auth.signOut();if(r.error)identity.fail('Não foi possível confirmar a saída. Tente novamente.',503,'LOGOUT_UNCONFIRMED');
-    return res.status(200).json({signedOut:true});
-   }
+   if(b.action==='logout')return res.status(200).json(await require('../lib/session-logout').logout(db,req,res,neonServer));
    const actor=await getIdentity(req,res,db);if(!actor)identity.fail('Entre com seu usuário.',401,'UNAUTHORIZED');
    if(b.action==='access-decision')return res.status(200).json(await require('../lib/google-access').decide(db,actor,b.request));
    if(b.action==='change-password'){
