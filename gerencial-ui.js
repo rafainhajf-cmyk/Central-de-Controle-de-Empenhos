@@ -36,6 +36,19 @@
   input.maxLength=key==='observation'?12000:1000;
   inputs[key]=input;l.append(input);form.append(l);
  }
+ if(inputs.sector&&inputs.status){
+  const norm=x=>String(x||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+  const original=inputs.status.value;
+  inputs.sector.addEventListener('change',()=>{
+   const sectorName=norm(inputs.sector.value);
+   const group=sectorName.includes('almox')?'almox':sectorName.includes('aprv')?'aprv':sectorName.includes('fiscal')?'fiscal':null;
+   const list=group?(state.directory?.phasesByFlow?.[group]||[]):(state.directory?.phases||[]);
+   const stage=inputs.status.value;
+   inputs.status.replaceChildren(new Option('Selecione uma etapa cadastrada',''));
+   for(const item of [...new Set([...list,...(original?[original]:[])])])inputs.status.add(new Option(item,item));
+   inputs.status.value=list.includes(stage)?stage:'';
+  });
+ }
  if(r.flow==='almox')form.append(node('p','Situação e observação originais do Almox são lidas da planilha e não são substituídas pelo acompanhamento.','source-meta'));
  const save=node('button','Salvar acompanhamento');form.append(save);
  form.onsubmit=async e=>{e.preventDefault();save.disabled=true;try{
