@@ -30,11 +30,22 @@
       ['Observação original',a.sourceObservation],
       ['Cobrança',a.taskStatus],
       ['Data em que a cobrança foi gerada',a.taskCreatedAt?a.taskCreatedAt.slice(0,10):'Ainda não registrada'],
-      ['Dias desde geração da cobrança',a.waitingDays===null?'Não iniciou':day(a.waitingDays)],
+      [a.taskCompletedAt?'Dias desde geração até conclusão':'Dias desde geração da cobrança',a.waitingDays===null?'Não iniciou':day(a.waitingDays)],
+      ['Data de conclusão',a.taskCompletedAt?a.taskCompletedAt.slice(0,10):'Ainda em aberto'],
       ['Prazo da providência',a.dueOn||'Prazo não confirmado'],
       ['Dias de atraso',a.overdueDays===null?'A conferir':day(a.overdueDays)],
       ['Último registro',a.lastAction||'Sem resposta registrada']
     ]){const p=make('p');p.append(make('strong',label+': '),document.createTextNode(String(value)));info.append(p);}
+    if(a.monitor){
+      info.append(make('h4','Conferência de marcos e prazos do Almox'));
+      info.append(make('p',a.monitor.status));
+      for(const milestone of a.monitor.milestones||[]){
+       const line=make('p');
+       line.append(make('strong',milestone.label+': '),document.createTextNode((milestone.dueOn||'Sem data')+(milestone.estimated?' · estimado, a conferir':milestone.overdueDays>0?' · '+day(milestone.overdueDays)+' desde o prazo':' · dentro do prazo informado')));
+       info.append(line);
+      }
+      info.append(make('small',a.monitor.caveat));
+    }
     if(a.activityId)info.append(link('/meu-dia?view=day&search='+encodeURIComponent(item.number),'Abrir cobrança, responder ou concluir'));
     else info.append(link('/meu-dia?view=day','Gerar atividades das fontes para iniciar cobrança registrada'));
     details.append(info);action.append(details);
