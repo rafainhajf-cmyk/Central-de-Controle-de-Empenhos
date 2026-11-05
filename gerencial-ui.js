@@ -1,6 +1,6 @@
  'use strict';
 (()=>{
- const $=id=>document.getElementById(id),AREAS=[['panel','Pendências dos Empenhos'],['commitments','Empenhos e Liquidação'],['credits','Créditos e NCs'],['distribution','Processos com NC e PRO'],['processes','Licitação sem NC'],['proposals','Propostas de Licitação'],['catalog','Fases, responsáveis e setores'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
+ const $=id=>document.getElementById(id),AREAS=[['panel','Pendências dos Empenhos'],['commitments','Empenhos e Liquidação'],['credits','Créditos e NCs'],['distribution','Processos com NC e PRO'],['processes','Licitação sem NC'],['proposals','Proposta de Licitação'],['catalog','Fases, responsáveis e setores'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
  const FLOW={almox:'Almoxarifado',fiscal:'Fiscalização',aprv:'APRV'},money=v=>Number.isSafeInteger(v)?(v/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'A conferir';
  const requestedArea=new URLSearchParams(window.location.search).get('area');
  let state=null,area=AREAS.some(([key])=>key===requestedArea)?requestedArea:'panel',creditMode='available',loading=false,syncing=false;
@@ -109,7 +109,7 @@
  if(area==='proposals'){
    const p=selected(state.proposals||[]);
    out.append(node('p','Itens recebidos da planilha de propostas: não presumir crédito ou empenho. A contagem de dias parte da data de lançamento original; status e orçamento permanecem declarados pela fonte.'));
-   out.append(CentralTable.create({title:'Propostas de Licitação',headers:['Prioridade','Objeto','Setor','ND','Dias desde lançamento','Status','Orçamento','Valor estimado','NC vinculada','Lançado em','Enviado no sistema','Observações'],rows:p.map(r=>({id:r.id,label:r.subject,cells:[r.priority,r.subject,r.sector,r.nd,r.daysSinceLaunch??'Data a conferir',r.status,r.budgetStatus,money(r.amountCents),r.nc,r.launchedOn||'A conferir',r.sentToSystem,r.observation],detail:()=>card(r.subject,'Fonte: planilha Propostas de Licitação · linha '+r.sourceRow,[['Prazo',r.dueOn],['ND/PI da NC',r.ncClassification],['Observações de conclusão',r.completionObservation]])}))}));
+   out.append(CentralTable.create({title:'Proposta de Licitação',headers:['Prioridade','Objeto','Setor','ND','Dias desde lançamento','Status','Orçamento','Valor estimado','NC vinculada','Lançado em','Enviado no sistema','Observações'],rows:p.map(r=>({id:r.id,label:r.subject,cells:[r.priority,r.subject,r.sector,r.nd,r.daysSinceLaunch??'Data a conferir',r.status,r.budgetStatus,money(r.amountCents),r.nc,r.launchedOn||'A conferir',r.sentToSystem,r.observation],detail:()=>card(r.subject,'Fonte: planilha Proposta de Licitação · linha '+r.sourceRow,[['Prazo',r.dueOn],['ND/PI da NC',r.ncClassification],['Observações de conclusão',r.completionObservation]])}))}));
  }
  if(area==='processes'){
   const current=state.processes.filter(r=>$('includeArchivedDistributions').checked||!r.archived&&!r.linkedDistributionKey);
