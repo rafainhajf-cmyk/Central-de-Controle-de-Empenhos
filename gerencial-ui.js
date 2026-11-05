@@ -1,6 +1,6 @@
  'use strict';
 (()=>{
- const $=id=>document.getElementById(id),AREAS=[['panel','Visão geral'],['commitments','Empenhos e Liquidação'],['credits','Créditos e NCs'],['distribution','Processos com NC'],['processes','Licitação sem NC'],['catalog','Fases, responsáveis e setores'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
+ const $=id=>document.getElementById(id),AREAS=[['panel','Pendências dos Empenhos'],['commitments','Empenhos e Liquidação'],['credits','Créditos e NCs'],['distribution','Processos com NC'],['processes','Licitação sem NC'],['catalog','Fases, responsáveis e setores'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
  const FLOW={almox:'Almoxarifado',fiscal:'Fiscalização',aprv:'APRV'},money=v=>Number.isSafeInteger(v)?(v/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'A conferir';
  const requestedArea=new URLSearchParams(window.location.search).get('area');
  let state=null,area=AREAS.some(([key])=>key===requestedArea)?requestedArea:'panel',creditMode='available',loading=false,syncing=false;
@@ -64,19 +64,54 @@
  }
  function render(){if(!state)return;const out=$('gerencialContent');out.replaceChildren();if(state.viewer&&!state.globalAccess&&!state.viewer.sectors?.length)out.append(node('p','Seu login está ativo, mas ainda não possui setores liberados. O administrador pode definir setores ou liberar consulta geral em Meu Dia → Usuários e permissões.'));$('areaTitle').textContent=AREAS.find(x=>x[0]===area)[1];$('flowLabel').hidden=area!=='commitments';$('closedFilterLabel').hidden=area!=='commitments';$('distributionFilterLabel').hidden=!['distribution','processes'].includes(area);document.querySelectorAll('#gerencialAreas button').forEach(b=>{b.classList.toggle('active',b.dataset.area===area);b.setAttribute('aria-current',b.dataset.area===area?'page':'false');});
  if(area==='panel'){
-  const records=selected(state.commitments),sum=records.every(r=>Number.isSafeInteger(r.remainingCents))?money(records.reduce((n,r)=>n+r.remainingCents,0)):'A conferir';
-  out.append(CentralTable.create({title:'Painel de comando',headers:['Indicador','Valor / quantidade'],columns:false,rows:[['Saldo a liquidar no escopo',sum],['Empenhos em acompanhamento',records.length],['Créditos e NCs disponíveis',selected(state.credits.available).length],['Processos com NC',selected(state.distributions).length],['Licitação sem NC',selected(state.processes.filter(r=>!r.archived&&!r.linkedDistributionKey)).length],['Contratos',selected(state.contracts||[]).length],['Prazos vencidos',records.filter(r=>r.deadlineOverdue).length]].map(cells=>({cells}))}),sectorOverview());
-  if(state.goals.length)out.append(managementRows('goals',state.goals));
-  out.append(managementRows('commitments',records.filter(r=>r.remainingCents>0).sort((a,b)=>Number(b.deadlineOverdue)-Number(a.deadlineOverdue)||b.remainingCents-a.remainingCents)));
+  const records=selected(state.commitments).filter(r=>Number.isSafeInteger(r.remainingCents)&&r.remainingCents>0);
+  const activities=state.pendingActivities||[],rows=[];
+  for(const r of records){
+   const matching=activities.filter(a=>a.state!=='completed'&&a.reference===r.number&&(!a.ug||!r.ug||a.ug===r.ug));
+   const source=matching.length?matching:[null];
+   for(const a of source)rows.push({
+    id:r.id,number:r.number,sector:r.sector||'Setor a conferir',owner:r.owner||'A definir',
+    nd:r.nd||'Não informado',balance:r.remainingCents,
+    stage:a?.state||r.followupStage||r.reportedStage||'A conferir',
+    action:a?.nextAction||a?.subject||r.nextAction||'Conferir andamento',
+    due:a?.dueOn||r.dueOn||'',days:r.daysSinceEmission,observation:a?.lastAction||r.observation||r.almox?.observation||'',
+    reference:r
+   });
+  }
+  rows.sort((a,b)=>String(a.sector).localeCompare(String(b.sector),'pt-BR')||String(a.owner).localeCompare(String(b.owner),'pt-BR')||String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.number).localeCompare(String(b.number),'pt-BR'));
+  const count=records.length,unlinked=(activities||[]).filter(a=>a.state!=='completed'&&!records.some(r=>r.number===a.reference&&(!a.ug||!r.ug||a.ug===r.ug)));
+  const summary=node('p','Pendências de todos os empenhos com saldo a liquidar, por setor e responsável. ALMOX e Fiscalização permanecem em acompanhamento até a liquidação integral, inclusive após receber a nota fiscal. APRV mantém seu fluxo específico, sem aplicar o prazo de NE do ALMOX. Cada ação registrada aparece separadamente.');
+  out.append(summary);
+  out.append(CentralTable.create({title:'Resumo das pendências',headers:['Indicador','Quantidade / valor'],columns:false,rows:[
+   {cells:['Empenhos com saldo a liquidar',count]},
+   {cells:['Ações de cobrança exibidas',rows.length]},
+   {cells:['Saldo a liquidar',records.every(r=>Number.isSafeInteger(r.remainingCents))?money(records.reduce((sum,r)=>sum+r.remainingCents,0)):'A conferir']},
+   {cells:['Pendências sem vínculo seguro com NE ativa',unlinked.length]}
+  ]}));
+  out.append(CentralTable.create({title:'Ações pendentes de todos os empenhos',headers:['NE','Setor','Responsável','ND','A liquidar','Dias da emissão','Situação','Prazo','Providência necessária','Último registro'],rows:rows.map(r=>({id:r.id,label:r.number,cells:[r.number,r.sector,r.owner,r.nd,money(r.balance),r.days??'Data a conferir',r.stage,r.due||'A conferir',r.action,r.observation],detail:()=>ne(r.reference)})),empty:'Nenhum empenho com saldo a liquidar no escopo.'}));
+  if(unlinked.length)out.append(CentralTable.create({title:'Cobranças sem vínculo comprovado com empenho ativo',headers:['Referência','Setor','Responsável','Ação','Prazo'],rows:unlinked.map(a=>({cells:[a.reference,a.sector,a.owner,a.nextAction||a.subject,a.dueOn||'A conferir']}))}));
+  const pdf=node('button','Gerar relatório de pendências por setor · PDF');pdf.onclick=()=>{try{CentralManagementReport.download({...state,commitments:records});}catch(e){$('gerencialMessage').textContent=e.message;}};out.append(pdf);
   if(state.missingRecords?.length)out.append(CentralTable.create({title:'Registros ausentes da última fonte · preservados para conferência',headers:['Referência','Setor','Responsável','Último saldo conhecido','Observação','Próxima providência','Visto na fonte em'],rows:state.missingRecords.map(r=>({cells:[r.number,r.sector,r.owner,money(r.lastBalanceCents),r.observation,r.nextAction,r.lastSeen]}))}));
-  if(state.ownRecords?.length)out.append(CentralTable.create({title:'Cadastros próprios preservados',headers:['Referência','Objeto','Setor','Responsável','Próxima providência','Observação'],rows:selected(state.ownRecords).map(r=>({label:r.number,cells:[r.number,r.subject,r.sector,r.owner,r.nextAction,r.observation],...(r.manualVersion?{detail:()=>editor({...r,id:r.manualKey})}:{})}))}));
  }
+
  if(area==='commitments')out.append(node('p','Linhas amarelas aguardam sua confirmação do setor responsável. Escolha o setor na coluna destacada para salvar diretamente.'),managementRows(area,openCommitments().filter(r=>!$('gerencialFlow').value||r.flow===$('gerencialFlow').value)));
  if(area==='goals')out.append(CentralGoalsUI.create({...state,commitments:selected(state.commitments)}));
  if(area==='contracts')out.append(managementRows(area,state.contracts||[]));
  if(area==='credits'){out.append(node('p','Enquanto houver saldo livre a distribuir, a providência é da Gestão Orçamentária. Depois da distribuição, o setor designado acompanha sua parcela. A liquidar vinculado exibe apenas NEs identificadas com segurança; valores não vinculados exigem conciliação. Clique na NC para distribuir.'));const tabs=node('div',undefined,'tabs');for(const [k,label]of [['available','Disponíveis'],['received','Recebidos']]){const b=node('button',label,k===creditMode?'active':'');b.onclick=()=>{creditMode=k;render();};tabs.append(b);}out.append(tabs,managementRows(area,state.credits[creditMode]));if(state.credits.unresolved.length){out.append(node('h2','Identificação a conferir'),managementRows(area,state.credits.unresolved));}}
  if(area==='distribution')out.append(node('p','1º OK: requisição entregue. 2º OK: empenhamento confirmado. Entregas e empenhamentos parciais ficam separados por valor.'),managementRows(area,state.distributions.filter(r=>$('includeArchivedDistributions').checked||!r.progress.archived)));
- if(area==='processes')out.append(CentralProcurementUI.create(),managementRows(area,state.processes.filter(r=>$('includeArchivedDistributions').checked||!r.archived&&!r.linkedDistributionKey)));if(area==='catalog')out.append(CentralProcurementUI.catalog());
+ if(area==='processes'){
+  const current=state.processes.filter(r=>$('includeArchivedDistributions').checked||!r.archived&&!r.linkedDistributionKey);
+  const totals=new Map();
+  for(const p of current){
+   const kind=(p.processType||p.modality||'Não informado').trim()||'Não informado';
+   if(!totals.has(kind))totals.set(kind,{count:0,value:0,unknown:0});
+   const item=totals.get(kind);item.count++;
+   if(Number.isSafeInteger(p.amountCents))item.value+=p.amountCents;else item.unknown++;
+  }
+  out.append(CentralProcurementUI.create());
+  out.append(CentralTable.create({title:'Valor por tipo de processo · licitações sem NC',headers:['Tipo de processo','Quantidade','Valor a distribuir','Conferência'],rows:[...totals].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR')).map(([kind,t])=>({cells:[kind,t.count,t.unknown?'Parcial: '+money(t.value):money(t.value),t.unknown?t.unknown+' valor(es) a conferir':'Todos os valores informados']}))}));
+  out.append(managementRows(area,current));
+}if(area==='catalog')out.append(CentralProcurementUI.catalog());
  }
  async function refresh(){if(loading)return;loading=true;try{const response=await fetch('/api/gerencial',{credentials:'same-origin',cache:'no-store'}),data=await response.json();if(!response.ok){if(response.status===401){state=null;$('gerencialWorkspace').hidden=true;$('gerencialContent').replaceChildren();$('gerencialLogin').hidden=false;$('gerencialRefresh').hidden=true;}if(data.code==='SYNC_REQUIRED'){$('gerencialRefresh').hidden=!data.canSync;$('sourceStatus').textContent='Sem carga inicial. Use Atualizar agora para importar os dados.';}throw Error(data.error||'Consulta indisponível.');}state=data;CentralSessionUI.show(data.viewer);CentralDistributionUI.init(distributionRecovery,data.viewerId,refresh,data.directory);CentralProcurementUI.init(procurementRecovery,data.viewerId,refresh,data);$('gerencialWorkspace').hidden=false;$('gerencialLogin').hidden=true;$('gerencialRefresh').hidden=data.sync?.canSync===false;$('gerencialMessage').textContent=data.sync?.lastAttempt==='failed'?'A última tentativa falhou. Exibindo os dados preservados.':data.sync?.stale?'A atualização diária está atrasada. Os últimos dados foram preservados.':'Dados preservados · atualização diária às 10h15 (Brasília) ou pelo botão.';$('sourceStatus').textContent='Última atualização: '+new Date(data.sync?.updatedAt||data.readAt).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})+' · Fonte: '+data.sourceDate;const previous=$('gerencialSector').value;$('gerencialSector').replaceChildren(new Option('Todos os setores permitidos',''));for(const sector of [...new Set([...data.commitments,...data.distributions,...data.processes,...(data.contracts||[])].map(r=>r.sector).filter(Boolean))].sort())$('gerencialSector').add(new Option(sector,sector));$('gerencialSector').value=previous;render();}catch(e){$('gerencialMessage').textContent=e.message+(state?' Última consulta exibida; atualização não concluída.':'');}finally{loading=false;}}
  async function synchronize(){if(syncing)return;syncing=true;$('gerencialRefresh').disabled=true;$('gerencialRefresh').textContent='Atualizando…';$('gerencialMessage').textContent='Consultando o Drive. Seus preenchimentos serão preservados.';try{await post('/api/sincronizacao',{action:'sync'});await refresh();}catch(e){$('gerencialMessage').textContent=e.message+(state?' Última consulta exibida; dados preservados.':'');}finally{syncing=false;$('gerencialRefresh').disabled=false;$('gerencialRefresh').textContent='Atualizar agora';}}
