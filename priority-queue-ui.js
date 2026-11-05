@@ -17,7 +17,14 @@
    const subject=make('td');subject.append(make('strong',item.subject),make('small',item.sector||''));
    for(const val of [item.number])row.append(make('td',val||'A conferir'));
    row.append(subject);
-   row.append(make('td',item.owner||'Responsável a definir'),make('td',money(item.amountCents)),make('td',item.daysLabel?day(item.days):'—'));
+   const daysCell=make('td');
+   daysCell.append(make('strong',item.daysLabel?day(item.days):'—'));
+   if(item.review){
+    const follow=make('small',item.review.waitingDays===null?'Cobrança ainda sem marco':(item.review.taskCompletedAt?'Cobrança concluída em ':'Cobrança aberta há ')+day(item.review.waitingDays));
+    follow.className=item.review.overdueDays>0&&!item.review.taskCompletedAt?'deadline-overdue':'';
+    daysCell.append(follow);
+   }
+   row.append(make('td',item.owner||'Responsável a definir'),make('td',money(item.amountCents)),daysCell);
    const action=make('td');
    action.append(make('p',item.nextAction||'A definir'));
    if(item.review){
