@@ -69,3 +69,10 @@
 .management-sidebar.source-sidebar #sourceTabs a[aria-current=page]{background:#dff1e9;border-color:#43867b}
 .management-sidebar.source-sidebar>nav.source-nav:not(#sourceTabs){display:flex;flex-wrap:wrap;gap:4px}
 @media(max-width:600px){.management-sidebar.source-sidebar #sourceTabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.source-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:12px 0 18px}
+.source-overview-card{padding:16px;border:1px solid #dce5eb;border-radius:12px;background:white;display:flex;flex-direction:column;gap:8px;min-width:0}
+.source-overview-card h3{font-size:16px;margin:0}
+.source-overview-card p{font-size:12px;line-height:1.45;margin:0}
+.source-overview-card a{font-size:13px;font-weight:600}
+@media(max-width:680px){.source-overview{grid-template-columns:1fr}}
