@@ -22,13 +22,13 @@
   }
   tbl.append(body);section.append(tbl);return section;
  }
- function render(state,view,sector){
+ function render(state,view,sector,search=''){
   const out=$('activities'),cards=$('dayCards');out.replaceChildren();cards.replaceChildren();
-  const queue=CentralPriorityQueue.queue(state);
+  const queue=CentralPriorityQueue.queue(state),needle=String(search).trim().toLocaleLowerCase('pt-BR');const filtered=items=>!needle?items:items.filter(i=>[i.number,i.subject,i.owner,i.sector,i.nextAction].join(' ').toLocaleLowerCase('pt-BR').includes(needle));
   if(view==='mine'){
    cards.append(make('h2','Minhas pendências · créditos que preciso distribuir'));
    cards.append(make('p','O saldo ainda não distribuído permanece sob sua responsabilidade. Valores reservados para setores não são cobrados aqui.'));
-   out.append(table('Créditos não distribuídos',queue.mine));
+   out.append(table('Créditos não distribuídos',filtered(queue.mine)));
    if(queue.uncertain.length)out.append(make('p',queue.uncertain.length+' NC(s) com identificação ou conciliação pendente: não tratadas como saldo livre.','goals-warning'));
    const a=make('p');a.append(link('/gerencial?area=credits','Abrir Créditos e NCs para distribuir'));out.append(a);
   }else{
@@ -38,7 +38,7 @@
    for(const s of sectors){
     if(!queue.groups[s])continue;
     const section=make('section',undefined,'queue-sector');section.append(make('h2',s));
-    for(const group of queue.groups[s])section.append(table(group.label,group.items));
+    for(const group of queue.groups[s])section.append(table(group.label,filtered(group.items)));
     out.append(section);
    }
    if(!sectors.some(s=>queue.groups[s]))out.append(make('p','O setor selecionado não pertence aos grupos ALMOX, APRV ou Fiscalização.','empty'));
