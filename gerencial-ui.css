@@ -60,3 +60,12 @@
  .goals-table th:nth-child(4),.goals-table td:nth-child(4){display:none}
 }
 @media print{.management-sidebar{display:none}.goals-table th:nth-child(3),.goals-table td:nth-child(3),.goals-table th:nth-child(4),.goals-table td:nth-child(4){display:table-cell}}
+
+/* A Central de Fontes também usa abas no topo, sem menu lateral ou rolagem na navegação. */
+.management-sidebar.source-sidebar{position:static;max-height:none;overflow:visible}
+.management-sidebar.source-sidebar h2{display:block;font-size:12px;margin:4px 0 2px;padding:0}
+.management-sidebar.source-sidebar #sourceTabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:5px}
+.management-sidebar.source-sidebar #sourceTabs a{white-space:normal;overflow-wrap:anywhere;border:1px solid #dce5eb;border-radius:7px;padding:7px 8px;text-align:center}
+.management-sidebar.source-sidebar #sourceTabs a[aria-current=page]{background:#dff1e9;border-color:#43867b}
+.management-sidebar.source-sidebar>nav.source-nav:not(#sourceTabs){display:flex;flex-wrap:wrap;gap:4px}
+@media(max-width:600px){.management-sidebar.source-sidebar #sourceTabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
