@@ -30,17 +30,19 @@
   const asOf=state.asOf||new Date().toISOString().slice(0,10);
   const open=actions.filter(a=>a.state!=='completed');
   const active=open.sort((a,b)=>(a.dueOn||'9999').localeCompare(b.dueOn||'9999'))[0]||null;
-  const age=active?daysBetween(active.createdAt,asOf):null;
-  const due=active?.dueOn||record.dueOn||null;
+  const completed=actions.filter(a=>a.state==='completed').sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0]||null;
+  const age=active?daysBetween(active.createdAt,asOf):completed?daysBetween(completed.createdAt,completed.updatedAt):null;
+  const monitor=record.almoxCheck||null;
+  const due=active?.dueOn||monitor?.deadline||record.dueOn||null;
   const delay=due&&due<asOf?daysBetween(due,asOf):0;
   const statuses={open:'Aberta','in-progress':'Em andamento',waiting:'Aguardando retorno',completed:'Concluída'};
   const sourceStatus=record.almox?.status||'Sem informação na planilha';
   const sourceObservation=record.almox?.observation||'Sem observação do Almox na fonte';
   return {sourceStatus,sourceObservation,activityId:active?.id||null,
-   taskCreatedAt:active?.createdAt||null,dueOn:due,
+   taskCreatedAt:active?.createdAt||completed?.createdAt||null,taskCompletedAt:!active?completed?.updatedAt||null:null,dueOn:due,monitor,
    waitingDays:age,overdueDays:delay,
    taskStatus:active?statuses[active.state]||active.state:actions.length?'Todas as atividades registradas concluídas':'Sem cobrança registrada',
-   action:active?.nextAction||active?.subject||record.nextAction||'Conferir envio, entrega, notificação ou liquidação e registrar providência',
+   action:active?.nextAction||monitor?.action||active?.subject||record.nextAction||'Conferir envio, entrega, notificação ou liquidação e registrar providência',
    lastAction:active?.lastAction||null,
    rule:active?.rule||null,
    hasEvidence:!!active};
