@@ -37,7 +37,7 @@
   inputs[key]=input;l.append(input);form.append(l);
  }
  if(inputs.sector&&inputs.status){
-  const norm=x=>String(x||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+  const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const original=inputs.status.value;
   inputs.sector.addEventListener('change',()=>{
    const sectorName=norm(inputs.sector.value);
