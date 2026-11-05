@@ -1,6 +1,12 @@
 'use strict';
 const SheetCatalog=[
  {
+  "title": "Propostas de Licitação",
+  "id": 1950562101,
+  "lastColumn": "S",
+  "rowCount": 120
+ },
+ {
   "title": "Central • Início",
   "id": 1250001700,
   "lastColumn": "C",
