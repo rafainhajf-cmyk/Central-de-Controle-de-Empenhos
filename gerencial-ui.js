@@ -64,7 +64,7 @@
  }
  function render(){if(!state)return;const out=$('gerencialContent');out.replaceChildren();if(state.viewer&&!state.globalAccess&&!state.viewer.sectors?.length)out.append(node('p','Seu login está ativo, mas ainda não possui setores liberados. O administrador pode definir setores ou liberar consulta geral em Meu Dia → Usuários e permissões.'));$('areaTitle').textContent=AREAS.find(x=>x[0]===area)[1];$('flowLabel').hidden=area!=='commitments';$('closedFilterLabel').hidden=area!=='commitments';$('distributionFilterLabel').hidden=!['distribution','processes'].includes(area);document.querySelectorAll('#gerencialAreas button').forEach(b=>{b.classList.toggle('active',b.dataset.area===area);b.setAttribute('aria-current',b.dataset.area===area?'page':'false');});
  if(area==='panel'){
-  const records=selected(state.commitments).filter(r=>Number.isSafeInteger(r.remainingCents)&&r.remainingCents>0);
+  const records=selected(state.commitments).filter(r=>r.remainingCents!==0);
   const activities=state.pendingActivities||[],rows=[];
   for(const r of records){
    const matching=activities.filter(a=>a.state!=='completed'&&a.reference===r.number&&(!a.ug||!r.ug||a.ug===r.ug));
