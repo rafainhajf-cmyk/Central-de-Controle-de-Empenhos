@@ -17,7 +17,7 @@
   // Assignment to two different areas is ambiguous and should not silently move the NE.
   return matches.length===1?matches[0]:'Fiscalização';
  }
- const isoDay=instant=>typeof instant==='string'&&/^\d{4}-\d{2}-\d{2}/.test(instant)?instant.slice(0,10):null;
+ const isoDay=instant=>{if(typeof instant!=='string'||!/^\d{4}-\d{2}-\d{2}/.test(instant))return null;if(!instant.includes('T'))return instant.slice(0,10);const d=new Date(instant);if(Number.isNaN(d.getTime()))return null;return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);};
  function daysBetween(start,end){
   const a=isoDay(start),b=isoDay(end);if(!a||!b||a>b)return null;
   return Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
