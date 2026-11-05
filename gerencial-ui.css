@@ -76,3 +76,9 @@
 .source-overview-card p{font-size:12px;line-height:1.45;margin:0}
 .source-overview-card a{font-size:13px;font-weight:600}
 @media(max-width:680px){.source-overview{grid-template-columns:1fr}}
+
+/* Contratos vencidos e ainda não encerrados na fonte exigem ação no Compras.gov.br. */
+.data-table tr.contract-expired td{background:#fee2e2!important;color:#7f1d1d!important;border-bottom:1px solid #ef4444}
+.data-table tr.contract-expired td:first-child{border-left:5px solid #dc2626;font-weight:700}
+.data-table tr.contract-expired button{color:#991b1b}
+@media print{.data-table tr.contract-expired td{background:#fee2e2!important;color:#7f1d1d!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
