@@ -9,7 +9,7 @@
   section.append(make('h2',title));
   if(!items.length){section.append(make('p','Nenhuma pendência neste grupo.','empty'));return section;}
   const tbl=make('table',undefined,'queue-table'),head=make('tr');
-  for(const name of ['Referência','Objeto / setor','Responsável','Saldo','Dias','Próxima providência'])head.append(make('th',name));
+  for(const name of ['Referência','Objeto / setor','Responsável','Saldo','Dias','Próxima providência / cobrança'])head.append(make('th',name));
   const thead=make('thead');thead.append(head);tbl.append(thead);
   const body=make('tbody');
   for(const item of items){
@@ -17,7 +17,29 @@
    const subject=make('td');subject.append(make('strong',item.subject),make('small',item.sector||''));
    for(const val of [item.number])row.append(make('td',val||'A conferir'));
    row.append(subject);
-   for(const val of [item.owner||'Responsável a definir',money(item.amountCents),item.daysLabel?day(item.days):'—',item.nextAction||'A definir'])row.append(make('td',val));
+   row.append(make('td',item.owner||'Responsável a definir'),make('td',money(item.amountCents)),make('td',item.daysLabel?day(item.days):'—'));
+   const action=make('td');
+   action.append(make('p',item.nextAction||'A definir'));
+   if(item.review){
+    const a=item.review;
+    const details=make('details'),summary=make('summary','Conferência de prazo do ALMOX');
+    details.append(summary);
+    const info=make('div',undefined,'almox-check');
+    for(const [label,value] of [
+      ['Situação da planilha',a.sourceStatus],
+      ['Observação original',a.sourceObservation],
+      ['Cobrança',a.taskStatus],
+      ['Data em que a cobrança foi gerada',a.taskCreatedAt?a.taskCreatedAt.slice(0,10):'Ainda não registrada'],
+      ['Dias desde geração da cobrança',a.waitingDays===null?'Não iniciou':day(a.waitingDays)],
+      ['Prazo da providência',a.dueOn||'Prazo não confirmado'],
+      ['Dias de atraso',a.overdueDays===null?'A conferir':day(a.overdueDays)],
+      ['Último registro',a.lastAction||'Sem resposta registrada']
+    ]){const p=make('p');p.append(make('strong',label+': '),document.createTextNode(String(value)));info.append(p);}
+    if(a.activityId)info.append(link('/meu-dia?view=day&search='+encodeURIComponent(item.number),'Abrir cobrança, responder ou concluir'));
+    else info.append(link('/meu-dia?view=day','Gerar atividades das fontes para iniciar cobrança registrada'));
+    details.append(info);action.append(details);
+   }
+   row.append(action);
    body.append(row);
   }
   tbl.append(body);section.append(tbl);return section;
