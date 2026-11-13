@@ -28,7 +28,9 @@ function createHandler(deps={}){
     return res.status(200).json({user,...(req.query?.access==='1'?{access,canApprove:user?.role==='admin'&&user.email?.toLowerCase()===process.env.CENTRAL_OWNER_EMAIL?.toLowerCase()}: {})});
    }
    identity.requireSameOrigin(req);const b=identity.readBody(req);if(typeof b.action!=='string')identity.fail('Ação inválida.');
-   if(['admin-login','admin-link','admin-setup','admin-logout','admin-password'].includes(b.action))return require('../lib/admin-login-handler').createHandler(deps)({...req,body:{...b,action:b.action.slice(6)}},res);
+   if(['admin-login','admin-link','admin-setup','admin-logout','admin-password'].includes(b.action))return require('../lib/admin-login-handler').createHandler(deps)({
+    method:req.method,headers:req.headers,socket:req.socket,query:req.query,body:{...b,action:b.action.slice(6)}
+   },res);
    const allowed={login:['email','password','remember'],logout:[],'google-start':[],'access-decision':['request'],bootstrap:['profile'],'create-user':['profile'],'update-user':['profile'],'change-password':['currentPassword','newPassword']};
    if(!Object.hasOwn(allowed,b.action))identity.fail('Ação inválida.');identity.closed(b,['action',...allowed[b.action]]);
    if(b.action==='google-start'){
@@ -78,4 +80,5 @@ function createHandler(deps={}){
  };
 }
 module.exports=createHandler();module.exports.createHandler=createHandler;
+
 
