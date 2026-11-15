@@ -33,3 +33,16 @@ test('"Distribuir NC" opens the origin NC only when it is identified uniquely; t
  assert.equal(creditForNE(state,{subject:'Sem referência',ug:'160111'}),null);assert.equal(creditForNE({credits:{}},{subject:'2026NC000123'}),null);
  assert.match(ui,/kind==='holding'\?\{clickToOpen:true,actionLabel:'Distribuir NC'\}/);assert.match(ui,/CentralDistributionUI\.mountCredit\(credit\)/);
 });
+
+test('the "Processos com NC e PRO" area is now "PRO Distribuídos" and lists every distributed NC, finalized ones included',()=>{
+ assert.match(ui,/\['distribution','PRO Distribuídos'\]/);assert.doesNotMatch(ui,/Processos com NC e PRO/);
+ assert.match(read('central.html'),/>PRO Distribuídos</);assert.doesNotMatch(read('central.html'),/Processos com NC e PRO/);
+ assert.match(ui,/managementRows\(area,state\.distributions\)/);assert.doesNotMatch(ui,/state\.distributions\.filter\(r=>\$\('includeArchivedDistributions'\)/);
+ assert.match(ui,/r\.progress\.archived\?'Finalizada pelo setor':'Em andamento'/);
+ assert.match(ui,/distributionFilterLabel'\)\.hidden=area!=='processes'/);
+});
+test('Requisição and Contrata Mais Brasil are available as process types alongside the existing ones',()=>{
+ const types=require('../lib/management-directory');const src=read('lib/management-directory.js');
+ for(const t of ['Pregão','Dispensa','Inexigibilidade','Adesão','Contrato','Outro','Requisição','Contrata Mais Brasil'])assert.ok(src.includes("'"+t+"'"),t);
+ assert.ok(types);
+});
