@@ -70,7 +70,7 @@
    cards.append(make('p','O saldo ainda não distribuído permanece sob sua responsabilidade. Valores reservados para setores não são cobrados aqui.'));
    out.append(table('Créditos não distribuídos',filtered(queue.mine)));
    if(queue.uncertain.length)out.append(make('p',queue.uncertain.length+' NC(s) com identificação ou conciliação pendente: não tratadas como saldo livre.','goals-warning'));
-   const a=make('p');a.append(link('/gerencial?area=credits','Abrir Créditos e NCs para distribuir'));out.append(a);
+   const a=make('p');a.append(link('/gerencial?area=credits','Abrir NC e NE para distribuir'));out.append(a);
   }else{
    cards.append(make('h2','Pendências por Setor · ordem de cobrança'));
    cards.append(make('p','1. Créditos distribuídos e não empenhados · 2. Empenhos segurando crédito · 3. Serviços ND 339039 · 4. Demais empenhos. O responsável cadastrado pode direcionar a pendência da Fiscalização ao ALMOX ou à APRV.'));
