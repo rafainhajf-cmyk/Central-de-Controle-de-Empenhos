@@ -17,7 +17,7 @@ function createHandler(deps={}){
     const db=getDB(),user=await getIdentity(req,res,db);
     if(req.query?.users==='1'){
      if(!can(user,'manage-users'))identity.fail('Acesso não autorizado.',403,'FORBIDDEN');
-     return res.status(200).json({users:(await db.query('SELECT p.user_id,p.name,coalesce(c.login,p.email) AS email,p.role,p.sectors,p.active,p.global_read AS \"globalRead\" FROM central_day.profiles p LEFT JOIN central_day.admin_credentials c ON c.user_id=p.user_id ORDER BY p.name LIMIT 1000')).rows});
+     return res.status(200).json({users:(await db.query('SELECT p.user_id,p.name,coalesce(c.login,p.email) AS email,p.role,p.sectors,p.active,p.global_read AS \"globalRead\",(c.login IS NOT NULL AND p.role IN (\'manager\',\'sector-lead\',\'operator\')) AS \"canResetPassword\" FROM central_day.profiles p LEFT JOIN central_day.admin_credentials c ON c.user_id=p.user_id ORDER BY p.name LIMIT 1000')).rows});
     }
     if(req.query?.requests==='1'){
      require('../lib/google-access').requireOwner(user);
@@ -31,7 +31,7 @@ function createHandler(deps={}){
    if(['admin-login','admin-link','admin-setup','admin-logout','admin-password'].includes(b.action))return require('../lib/admin-login-handler').createHandler(deps)({
     method:req.method,headers:req.headers,socket:req.socket,query:req.query,body:{...b,action:b.action.slice(6)}
    },res);
-   const allowed={login:['email','password','remember'],logout:[],'google-start':[],'access-decision':['request'],bootstrap:['profile'],'create-user':['profile'],'update-user':['profile'],'change-password':['currentPassword','newPassword']};
+   const allowed={login:['email','password','remember'],logout:[],'google-start':[],'access-decision':['request'],bootstrap:['profile'],'create-user':['profile'],'update-user':['profile'],'reset-local-password':['userId','newPassword'],'change-password':['currentPassword','newPassword']};
    if(!Object.hasOwn(allowed,b.action))identity.fail('Ação inválida.');identity.closed(b,['action',...allowed[b.action]]);
    if(b.action==='google-start'){
     const auth=await neonServer(req,res),r=await auth.signIn.social({provider:'google',callbackURL:'https://'+req.headers.host+'/api/google-callback',errorCallbackURL:'https://'+req.headers.host+'/meu-dia?google=error',disableRedirect:true});
@@ -73,6 +73,7 @@ function createHandler(deps={}){
    }
    if(!can(actor,'manage-users'))identity.fail('Acesso não autorizado.',403,'FORBIDDEN');
    if(process.env.CENTRAL_OWNER_EMAIL)require('../lib/google-access').requireOwner(actor);
+   if(b.action==='reset-local-password')return res.status(200).json(await require('../lib/local-users').resetPassword(db,actor,{userId:b.userId,newPassword:b.newPassword}));
    if(b.action==='create-user'&&typeof b.profile?.email==='string'&&!b.profile.email.includes('@'))return res.status(200).json({user:await require('../lib/local-users').provision(db,actor,b.profile)});
    if(b.action==='create-user')return res.status(200).json({user:await profiles.provision(db,await neonServer({...req,headers:{...req.headers,cookie:''}},null),b.profile,actor)});
    return res.status(200).json(await profiles.updateProfile(db,actor,b.profile));

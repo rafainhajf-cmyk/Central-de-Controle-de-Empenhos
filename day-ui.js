@@ -93,9 +93,40 @@
    const decide=decision=>run(async()=>{await request('/api/identidade',{action:'access-decision',request:{userId:u.user_id,decision,role:role.value,sectors:sectors.input.value.split(',').map(s=>s.trim()).filter(Boolean)}});message(decision==='approve'?'Acesso autorizado.':'Solicitação recusada.');await loadAdmin();},decision==='approve'?approve:deny);form.onsubmit=e=>{e.preventDefault();decide('approve');};deny.onclick=()=>decide('deny');$('accessRequests').append(form);
   }
  }
+ function localPasswordReset(u){
+  const details=el('details'),form=el('form',undefined,'form');
+  const title=el('summary','Redefinir senha de '+u.email);
+  const password=field('Nova senha (mínimo 12 caracteres)','password');
+  const confirmation=field('Confirme a nova senha','password');
+  for(const {input} of [password,confirmation]){
+   input.required=true;
+   input.minLength=12;
+   input.maxLength=128;
+   input.autocomplete='new-password';
+  }
+  const save=el('button','Salvar nova senha');
+  form.append(password.label,confirmation.label,save);
+  details.append(title,form);
+  form.onsubmit=e=>{
+   e.preventDefault();
+   const newPassword=password.input.value;
+   if(newPassword!==confirmation.input.value){
+    message('As senhas precisam ser iguais.');
+    confirmation.input.focus();
+    return;
+   }
+   form.reset();
+   run(async()=>{
+    await request('/api/identidade',{action:'reset-local-password',userId:u.user_id,newPassword});
+    details.open=false;
+    message('Senha redefinida para '+u.email+'. As sessões anteriores foram encerradas.');
+   },save);
+  };
+  return details;
+ }
  async function loadAdmin(){await loadApprovals();await loadRules();
   const data=await request('/api/identidade?users=1');$('userList').replaceChildren();
-  for(const u of data.users){const form=el('form',undefined,'form'),name=el('p',u.name+' · '+u.email),role=el('select'),roles=el('label','Permissão');for(const [k,v]of Object.entries(roleNames))role.add(new Option(v,k));role.value=u.role;roles.append(role);const sectors=field('Setores (vírgula)','text',u.sectors.join(', ')),active=el('input');active.type='checkbox';active.checked=u.active;const globalRead=el('input');globalRead.type='checkbox';globalRead.checked=u.globalRead===true;const readLabel=el('label','Consulta geral dos dados de todos os setores','inline');readLabel.append(globalRead);const activeLabel=el('label','Ativo','inline');activeLabel.append(active);const button=el('button','Atualizar perfil');form.append(name,roles,sectors.label,readLabel,activeLabel,button);form.onsubmit=e=>{e.preventDefault();run(async()=>{await request('/api/identidade',{action:'update-user',profile:{userId:u.user_id,role:role.value,sectors:sectors.input.value.split(',').map(s=>s.trim()).filter(Boolean),active:active.checked,globalRead:globalRead.checked}});message('Perfil atualizado; histórico preservado.');await loadAdmin();},button);};$('userList').append(form);}
+  for(const u of data.users){const form=el('form',undefined,'form'),name=el('p',u.name+' · '+u.email),role=el('select'),roles=el('label','Permissão');for(const [k,v]of Object.entries(roleNames))role.add(new Option(v,k));role.value=u.role;roles.append(role);const sectors=field('Setores (vírgula)','text',u.sectors.join(', ')),active=el('input');active.type='checkbox';active.checked=u.active;const globalRead=el('input');globalRead.type='checkbox';globalRead.checked=u.globalRead===true;const readLabel=el('label','Consulta geral dos dados de todos os setores','inline');readLabel.append(globalRead);const activeLabel=el('label','Ativo','inline');activeLabel.append(active);const button=el('button','Atualizar perfil');form.append(name,roles,sectors.label,readLabel,activeLabel,button);form.onsubmit=e=>{e.preventDefault();run(async()=>{await request('/api/identidade',{action:'update-user',profile:{userId:u.user_id,role:role.value,sectors:sectors.input.value.split(',').map(s=>s.trim()).filter(Boolean),active:active.checked,globalRead:globalRead.checked}});message('Perfil atualizado; histórico preservado.');await loadAdmin();},button);};$('userList').append(form);if(u.canResetPassword)$('userList').append(localPasswordReset(u));}
   const c=await request('/api/meu-dia?calendar=1');$('calendarList').replaceChildren(el('p',c.notice));for(const d of c.calendar)$('calendarList').append(el('p',d.day+' · '+(d.kind==='national'?'Nacional':'Local')+' · '+d.label));
  }
  async function entered(identity){accessState=null;const status=await request('/api/identidade?access=1');canApprove=status.canApprove===true;user=identity;epoch++;client.clear();showSession();await loadDirectory();const params=new URLSearchParams(window.location.search);if(params.get('search'))$('daySearch').value=params.get('search');await setView(params.get('view')==='day'?'day':'mine');message(!['admin','manager'].includes(user.role)&&!user.globalRead&&!user.sectors?.length?'Seu login está ativo, mas não possui setores liberados. Você verá atividades que forem atribuídas a você. O administrador pode definir seus setores ou liberar consulta geral.':'Acesso individual confirmado. Confira o calendário e as informações pendentes antes de cobrar prazos.');}

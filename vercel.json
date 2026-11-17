@@ -1,6 +1,11 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "git": {
+    "deploymentEnabled": {
+      "codex/redefinir-senha-local": false
+    }
+  },
   "functions": {
     "api/operacoes.js": {
       "maxDuration": 300
