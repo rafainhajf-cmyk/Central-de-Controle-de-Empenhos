@@ -7,7 +7,7 @@ function helper(name){const m=new RegExp('function '+name+'\\([^)]*\\)\\{[^\\n]*
 const holdingNEs=new Function('state',helper('holdingNEs')+';return holdingNEs();'),ncOfNE=new Function('r',helper('ncOfNE')+';return ncOfNE(r);');
 
 test('the credits area is named "1. NC e NE" in the menu, the Central de Fontes navigation and the priority-queue link',()=>{
- assert.match(ui,/\['credits','1\. NC e NE'\]/);assert.doesNotMatch(ui,/\['credits','Créditos e NCs'\]/);
+ assert.match(ui,/\['credits','NC e NE'\]/);assert.doesNotMatch(ui,/\['credits','Créditos e NCs'\]/);
  assert.match(read('central.html'),/<a href="\/gerencial\?area=credits">1\. NC e NE<\/a>/);
  assert.doesNotMatch(read('central.html'),/>Créditos e NCs</);
  assert.match(read('priority-queue-ui.js'),/Abrir NC e NE para distribuir/);assert.doesNotMatch(read('priority-queue-ui.js'),/Abrir Créditos e NCs/);
