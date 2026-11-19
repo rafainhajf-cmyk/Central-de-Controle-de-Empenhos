@@ -1,12 +1,12 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),queue=require('../priority-queue'),{check}=require('../lib/almox-monitor');
-const ne=(number,sector,extra={})=>({id:'ne|160111|2026|'+number,number,ug:'160111',sector,owner:'',nd:'339030',remainingCents:12000,daysSinceEmission:21,holdingCredit:false,...extra});
+const ne=(number,sector,extra={})=>({id:'ne|160111|2026|'+number,number,ug:'160111',sector,owner:'',nd:'339030',flow:'almox',remainingCents:12000,daysSinceEmission:21,holdingCredit:false,...extra});
 test('sector priority matches ordered workflow and credits not distributed remain personal',()=>{
- const state={directory:{ownerAssignments:[],people:[]},credits:{received:[{id:'nc|1',number:'2026NC000001',freeToDistributeCents:4500}],unresolved:[]},distributions:[{id:'distribution|1',number:'2026NC000002',sector:'ALMOX',daysSinceDistribution:11,progress:{uncommittedCents:3000}}],commitments:[ne('2026NE000001','ALMOX',{holdingCredit:true}),ne('2026NE000002','ALMOX',{nd:'339039'}),ne('2026NE000003','ALMOX')]};
- const q=queue.queue(state);assert.equal(q.mine.length,1);assert.equal(q.groups.ALMOX[0].items.length,1);assert.equal(q.groups.ALMOX[1].items.length,1);assert.equal(q.groups.ALMOX[2].items.length,1);assert.equal(q.groups.ALMOX[3].items.length,1);
+ const state={directory:{ownerAssignments:[],people:[]},credits:{received:[{id:'nc|1',number:'2026NC000001',freeToDistributeCents:4500}],unresolved:[]},distributions:[{id:'distribution|1',number:'2026NC000002',sector:'ALMOX',daysSinceDistribution:11,progress:{uncommittedCents:3000}}],commitments:[ne('2026NE000001','ALMOX',{holdingCredit:true}),ne('2026NE000002','ALMOX',{nd:'339039',flow:'fiscal'}),ne('2026NE000003','ALMOX')]};
+ const q=queue.queue(state);assert.equal(q.mine.length,1);assert.equal(q.groups.ALMOX[0].items.length,1);assert.equal(q.groups.ALMOX[1].items.length,1);assert.equal(q.groups['Fiscalização'][2].items.length,1);assert.equal(q.groups.ALMOX[3].items.length,1);
 });
 test('fiscal responsibility follows a single registered owner-sector assignment',()=>{
- const state={directory:{ownerAssignments:[{name:'Sgt Teste',sector:'APRV'}],people:[]},credits:{received:[]},distributions:[],commitments:[ne('2026NE000004','Fiscalização',{owner:'Sgt Teste',nd:'339039'})]};
+ const state={directory:{ownerAssignments:[{name:'Sgt Teste',sector:'APRV'}],people:[]},credits:{received:[]},distributions:[],commitments:[ne('2026NE000004','Fiscalização',{owner:'Sgt Teste',nd:'339039',flow:'fiscal'})]};
  const q=queue.queue(state);assert.equal(q.groups.APRV[2].items.length,1);assert.equal(q.groups['Fiscalização'][2].items.length,0);
 });
 test('Almox open task counts from creation and closed task counts until completion',()=>{
