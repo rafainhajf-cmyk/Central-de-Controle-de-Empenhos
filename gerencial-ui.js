@@ -1,6 +1,6 @@
  'use strict';
 (()=>{
- const $=id=>document.getElementById(id),AREAS=[['panel','Pendências dos Empenhos'],['commitments','Empenhos e Liquidação'],['credits','1. NC e NE'],['distribution','PRO Distribuídos'],['processes','Licitação sem NC'],['proposals','Proposta de Licitação'],['catalog','Fases, responsáveis e setores'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
+ const $=id=>document.getElementById(id),AREAS=[['panel','Pendências dos Empenhos'],['commitments','Empenhos e Liquidação'],['credits','NC e NE'],['distribution','PRO Distribuídos'],['processes','Licitação sem NC'],['proposals','Proposta de Licitação'],['catalog','Fases, responsáveis e setores'],['goals','Metas de Liquidação'],['contracts','Contratos e fiscais']];
  const FLOW={almox:'Almoxarifado',fiscal:'Fiscalização',aprv:'APRV'},money=v=>Number.isSafeInteger(v)?(v/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'A conferir';
  const requestedArea=new URLSearchParams(window.location.search).get('area');
  let state=null,area=AREAS.some(([key])=>key===requestedArea)?requestedArea:'panel',creditMode='available',loading=false,syncing=false;
@@ -168,6 +168,6 @@
  $('exportManagement').onclick=()=>{const v=exportView();if(v)CentralExport.download(v.title,v.headers,v.rows);};
  $('consolidatedPDF').onclick=()=>{try{if(!state)throw Error('Carregue os dados antes de gerar.');CentralManagementReport.download(state);}catch(e){$('gerencialMessage').textContent=e.message;}};
  $('printManagement').onclick=()=>CentralExport.print('gerencial');
- for(const [k,label]of AREAS){const b=node('button',label);b.dataset.area=k;b.onclick=()=>openArea(k);$('gerencialAreas').append(b);}for(const id of ['gerencialSearch','gerencialSector','gerencialFlow'])$(id).addEventListener('input',render);if($('includeClosed'))$('includeClosed').onchange=render;$('includeArchivedDistributions').onchange=render;$('gerencialRefresh').onclick=synchronize;const requestedFlow=new URLSearchParams(window.location.search).get('flow');if(Object.hasOwn(FLOW,requestedFlow))$('gerencialFlow').value=requestedFlow;refresh();
+ AREAS.forEach(([k,label],i)=>{const b=node('button',(i+1)+'. '+label);b.dataset.area=k;b.onclick=()=>openArea(k);$('gerencialAreas').append(b);});for(const id of ['gerencialSearch','gerencialSector','gerencialFlow'])$(id).addEventListener('input',render);if($('includeClosed'))$('includeClosed').onchange=render;$('includeArchivedDistributions').onchange=render;$('gerencialRefresh').onclick=synchronize;const requestedFlow=new URLSearchParams(window.location.search).get('flow');if(Object.hasOwn(FLOW,requestedFlow))$('gerencialFlow').value=requestedFlow;refresh();
 })();
 
