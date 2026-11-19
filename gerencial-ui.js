@@ -93,11 +93,12 @@
     nd:r.nd||'Não informado',balance:r.remainingCents,
     stage:a?.state||r.followupStage||r.reportedStage||'A conferir',
     action:a?.nextAction||a?.subject||r.nextAction||'Conferir andamento',
-    due:a?.dueOn||r.dueOn||'',rule:a?.rule||'',days:r.daysSinceEmission,observation:a?.lastAction||r.observation||r.almox?.observation||'',
+    due:a?.dueOn||r.dueOn||'',rule:a?.rule||'',priority:a?.priority,days:r.daysSinceEmission,observation:a?.lastAction||r.observation||r.almox?.observation||'',
     reference:r
    });
   }
-  rows.sort((a,b)=>String(a.sector).localeCompare(String(b.sector),'pt-BR')||String(a.owner).localeCompare(String(b.owner),'pt-BR')||String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.number).localeCompare(String(b.number),'pt-BR'));
+  const todayBR=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
+  rows.sort((a,b)=>(((a.due&&a.due<todayBR)?0:1)-((b.due&&b.due<todayBR)?0:1))||((a.priority??9)-(b.priority??9))||String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.sector).localeCompare(String(b.sector),'pt-BR')||String(a.owner).localeCompare(String(b.owner),'pt-BR')||String(a.number).localeCompare(String(b.number),'pt-BR'));
   const count=records.length,unlinked=(activities||[]).filter(a=>a.state!=='completed'&&!records.some(r=>r.number===a.reference&&(!a.ug||!r.ug||a.ug===r.ug)));
   const summary=node('p','Pendências de todos os empenhos com saldo a liquidar, por setor e responsável. ALMOX e Fiscalização permanecem em acompanhamento até a liquidação integral, inclusive após receber a nota fiscal. APRV mantém seu fluxo específico, sem aplicar o prazo de NE do ALMOX. Cada ação registrada aparece separadamente.');
   out.append(summary);
