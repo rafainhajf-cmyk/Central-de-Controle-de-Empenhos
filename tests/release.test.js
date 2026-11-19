@@ -97,3 +97,8 @@ test('generate API reads Neon, persists candidates once, and returns them under 
  }finally{await db.close();}
 });
 
+test('ALMOX flow is limited to ND 449052 and ND 339030 outside the APRV subitems',()=>{
+ assert.equal(classifyFlow({nd:'449052'}).flow,'almox');
+ assert.equal(classifyFlow({nd:'339036'}).flow,null);
+ assert.equal(classifyFlow({nd:'339036'}).origin,'outside-almox');
+});
