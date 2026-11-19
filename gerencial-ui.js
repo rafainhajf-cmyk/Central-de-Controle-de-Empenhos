@@ -34,7 +34,7 @@
   else if(key==='owner')input=makeSelect(registered('owner'),value,'Selecione um responsável cadastrado');
   else if(key==='status'){
    const currentAlmox=r.flow==='almox'?r.almox?.status||'':'';
-   const group=/almox/i.test(r.sector||'')?'almox':/aprv/i.test(r.sector||'')?'aprv':/fiscal/i.test(r.sector||'')?'fiscal':(['almox','aprv','fiscal'].includes(r.flow)?r.flow:null);const stages=group?(state.directory?.phasesByFlow?.[group]||[]):(state.directory?.phases||[]);
+   const group=['almox','aprv','fiscal'].includes(r.flow)?r.flow:null;const stages=group?(state.directory?.phasesByFlow?.[group]||[]):(state.directory?.phases||[]);
    input=makeSelect([...stages,currentAlmox],value||currentAlmox,'Selecione uma etapa cadastrada');
   }else input=key==='situation'?situationSelect(r):node(key==='observation'?'textarea':'input');
   if(['dueOn','sentToSupplierOn','deliveryDueOn','firstNotifiedOn','secondNotifiedOn','paOpenedOn'].includes(key))input.type='date';

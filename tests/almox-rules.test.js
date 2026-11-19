@@ -35,3 +35,8 @@ test('individual deadline overrides default and invalid dates never become inven
 test('closed contracts are preserved in the source without generating a new follow-up',()=>{
  const source={complete:true,records:[{key:'contract-one',kind:'contract',fields:{number:'1/2026',status:'Encerrado'}}]};assert.deepEqual(deriveActivities(source),[]);assert.equal(source.records.length,1);
 });
+test('Almox monitors only ND 449052 and ND 339030 outside the APRV subitems',()=>{
+ assert.equal(run({nd:'449052'}).length>0,true);
+ const outside=run({nd:'339036',sector:'ALMOX'});assert.equal(outside.length,1);assert.equal(outside[0].rule,'review');assert.equal(outside[0].sector,null);
+ assert.equal(run({nd:'339030',subitem:'04'}).some(t=>t.rule==='send'),false);
+});

@@ -8,14 +8,24 @@
  const sectorOf=s=>{const x=normalize(s);if(x.includes('ALMOX'))return 'ALMOX';if(x.includes('APRV'))return 'APRV';if(x.includes('FISCAL'))return 'Fiscalização';return null;};
  const order=['ALMOX','APRV','Fiscalização'];
  const stages=['Créditos distribuídos sem empenho','Empenhos segurando créditos','Serviços 339039 · Fiscalização','Demais empenhos'];
- function ownerSector(r,directory){
-  if(sectorOf(r.sector)!=='Fiscalização'||!r.owner)return sectorOf(r.sector);
+ function fiscalOwnerSector(r,directory){
   const target=normalize(r.owner);
   const catalog=(directory?.ownerAssignments||[]).filter(o=>normalize(o.name)===target).map(o=>sectorOf(o.sector)).filter(Boolean);
   const people=(directory?.people||[]).filter(p=>normalize(p.name)===target).flatMap(p=>(p.sectors||[]).map(sectorOf)).filter(Boolean);
   const matches=[...new Set([...catalog,...people])].filter(x=>x!=='Fiscalização');
   // Assignment to two different areas is ambiguous and should not silently move the NE.
   return matches.length===1?matches[0]:'Fiscalização';
+ }
+ function ownerSector(r,directory){
+  if(sectorOf(r.sector)!=='Fiscalização'||!r.owner)return sectorOf(r.sector);
+  return fiscalOwnerSector(r,directory);
+ }
+ // A fila de empenhos segue a classificação por ND. O setor vindo da planilha não define ALMOX nem APRV.
+ function commitmentSector(r,directory){
+  if(r.flow==='almox')return 'ALMOX';
+  if(r.flow==='aprv')return 'APRV';
+  if(r.flow!=='fiscal')return null;
+  return r.owner?fiscalOwnerSector(r,directory):'Fiscalização';
  }
  const isoDay=instant=>{if(typeof instant!=='string'||!/^\d{4}-\d{2}-\d{2}/.test(instant))return null;if(!instant.includes('T'))return instant.slice(0,10);const d=new Date(instant);if(Number.isNaN(d.getTime()))return null;return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);};
  function daysBetween(start,end){
@@ -59,7 +69,7 @@
   }
   for(const n of state.commitments||[]){
    if(!Number.isSafeInteger(n.remainingCents)||n.remainingCents<=0)continue;
-   const sector=ownerSector(n,state.directory);if(!sector||!groups[sector])continue;
+   const sector=commitmentSector(n,state.directory);if(!sector||!groups[sector])continue;
    const priority=n.holdingCredit===true?1:String(n.nd||'').replace(/\D/g,'')==='339039'?2:3;
    const key=n.id||'ne:'+n.number+':'+sector;
    if(known.has(key))continue;known.add(key);
