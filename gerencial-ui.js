@@ -110,6 +110,7 @@
   rows.sort((a,b)=>(((a.due&&a.due<todayBR)?0:1)-((b.due&&b.due<todayBR)?0:1))||((a.priority??9)-(b.priority??9))||String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.sector).localeCompare(String(b.sector),'pt-BR')||String(a.owner).localeCompare(String(b.owner),'pt-BR')||String(a.number).localeCompare(String(b.number),'pt-BR'));
   const count=records.length,unlinked=(activities||[]).filter(a=>a.state!=='completed'&&!records.some(r=>r.number===a.reference&&(!a.ug||!r.ug||a.ug===r.ug)));
   const summary=node('p','Pendências de todos os empenhos com saldo a liquidar, por setor e responsável. ALMOX e Fiscalização permanecem em acompanhamento até a liquidação integral, inclusive após receber a nota fiscal. APRV mantém seu fluxo específico, sem aplicar o prazo de NE do ALMOX. Cada ação registrada aparece separadamente.');
+  out.append(stats());
   out.append(summary);
   out.append(CentralTable.create({title:'Resumo das pendências',headers:['Indicador','Quantidade / valor'],columns:false,rows:[
    {cells:['Empenhos com saldo a liquidar',count]},
