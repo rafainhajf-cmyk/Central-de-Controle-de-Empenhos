@@ -89,6 +89,22 @@
         c.append(make('h3',g.subject));
         c.append(make('p','Crédito da fonte: '+money(g.receivedCents)+' · Liquidado + pago informado: '+money(g.liquidatedPlusPaidCents)));
         for(const t of g.targets||[])c.append(make('p','Meta '+t.label+': '+(t.percentage||'A conferir')+' · falta informada: '+money(t.gapCents)));
+        const norm=v=>String(v||'').trim().toLocaleLowerCase('pt-BR');
+        const pool=(state.commitments||[]).filter(r=>r&&norm(r.expenseType)===norm(g.subject)&&Number.isSafeInteger(r.remainingCents)&&r.remainingCents>0).sort((a,b)=>(b.daysSinceEmission||0)-(a.daysSinceEmission||0));
+        for(const t of g.targets||[]){
+          if(!Number.isSafeInteger(t.gapCents)||t.gapCents<=0)continue;
+          const box=make('div',undefined,'goal-gap-list');
+          box.append(make('h4','Empenhos para fechar a falta de '+t.label+' ('+money(t.gapCents)+')'));
+          const ul=make('ul');let acc=0;
+          for(const r of pool){
+            if(acc>=t.gapCents)break;
+            const take=Math.min(r.remainingCents,t.gapCents-acc);acc+=take;
+            ul.append(make('li',r.number+' · saldo a liquidar '+money(r.remainingCents)+' · usar '+money(take)+' · '+(r.owner||'Responsável pendente')+(r.sector?' · '+r.sector:'')));
+          }
+          box.append(ul);
+          if(acc<t.gapCents)box.append(make('p','Os empenhos com saldo a liquidar desta despesa não cobrem a falta: faltam '+money(t.gapCents-acc)+'.','goals-warning'));
+          c.append(box);
+        }
         c.append(make('small','Base original da meta não conciliada com a execução das NEs por setor; não somar crédito da mesma NC repetido por ND ou setor.'));
         goals.append(c);
       }
