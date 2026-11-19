@@ -109,7 +109,7 @@
   ]}));
   out.append(CentralTable.create({title:'Ações pendentes de todos os empenhos',headers:['NE','Setor','Responsável','ND','A liquidar','Dias da emissão','Situação','Prazo','Providência necessária','Observação padronizada'],rows:rows.map(r=>({id:r.id,label:r.number,cells:[r.number,r.sector,r.owner,r.nd,money(r.balance),r.days??'Data a conferir',r.stage,r.due||'A conferir',r.action,standardObservation(r)],detail:()=>ne(r.reference)})),empty:'Nenhum empenho com saldo a liquidar no escopo.'}));
   if(unlinked.length)out.append(CentralTable.create({title:'Cobranças sem vínculo comprovado com empenho ativo',headers:['Referência','Setor','Responsável','Ação','Prazo'],rows:unlinked.map(a=>({cells:[a.reference,a.sector,a.owner,a.nextAction||a.subject,a.dueOn||'A conferir']}))}));
-  const pdf=node('button','Gerar relatório de pendências por setor · PDF');pdf.onclick=()=>{try{CentralManagementReport.download({...state,commitments:records});}catch(e){$('gerencialMessage').textContent=e.message;}};out.append(pdf);
+  const pdf=node('button','Gerar relatório semanal de pendências por setor · PDF');pdf.title='Gera o PDF com a situação atual dos empenhos. Não é enviado automaticamente.';pdf.onclick=()=>{try{CentralManagementReport.download({...state,commitments:records});}catch(e){$('gerencialMessage').textContent=e.message;}};out.append(pdf);
  }
 
  if(area==='commitments')out.append(node('p','Linhas amarelas aguardam sua confirmação do setor responsável. Escolha o setor na coluna destacada para salvar diretamente.'),managementRows(area,openCommitments().filter(r=>!$('gerencialFlow').value||r.flow===$('gerencialFlow').value)));
